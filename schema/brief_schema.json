@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Brief",
+  "type": "object",
+  "properties": {
+    "problem": { "type": "string", "minLength": 5 },
+    "objectives": { "type": "string", "minLength": 5 },
+    "KPIs": { "type": "string", "minLength": 5 }
+  },
+  "required": ["problem", "objectives", "KPIs"]
+}
