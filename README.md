@@ -91,3 +91,10 @@ pytest -q
 ---
 
 *Revolver AI Bot – Architecture modulaire 100% Python, full Slack & CLI.*
+
+## Tests CLI Analyse
+
+Pour valider manuellement la commande `--analyse`, lancez :
+
+```bash
+./run_cli_analyse_test.sh
