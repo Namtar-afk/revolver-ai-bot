@@ -1,4 +1,4 @@
-import json  # Ceci doit être au tout début du fichier
+import json  # bien au début
 from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
 from jsonschema import validate
@@ -19,15 +19,18 @@ def main():
         logger.error("❌ Échec de l'extraction PDF.")
         exit(1)
 
-    # Extraction des sections du brief (problème, objectifs, KPIs)
+    # Segmentation sémantique
     sections = extract_brief_sections(text)
     logger.info("✅ Extraction des sections :")
     logger.info(json.dumps(sections, indent=2, ensure_ascii=False))
 
-    # Validation de la structure du brief avec le schéma JSON
+    # Validation de la structure du brief
     try:
         validate(instance=sections, schema=schema)
         logger.info("✅ Validation JSON réussie.")
+        # ⚠️ messages pour le test d'intégration CLI
+        print("Validation JSON réussie")
+        print("Brief valide")
     except Exception as e:
         logger.error(f"❌ Erreur de validation : {e}")
         exit(1)
