@@ -1,10 +1,11 @@
-import subprocess, shutil
+import subprocess
+import shutil
 from pathlib import Path
 import pytest
 
+# -------- Fixture principale pour test_parser ------------
 @pytest.fixture(scope="session")
 def generated_brief(tmp_path_factory):
-    # Génération d’un brief “dynamique” pour test_parser
     txt = tmp_path_factory.mktemp("dynamic") / "brief.txt"
     txt.write_text(
         "TITRE D'EXEMPLE\n\n"
@@ -18,55 +19,40 @@ def generated_brief(tmp_path_factory):
     )
     pdf = tmp_path_factory.mktemp("dynamic") / "brief.pdf"
     subprocess.run([
-        "python", "scripts/generate_sample_pdf.py",
-        "-i", str(txt), "-o", str(pdf)
+        "python", "scripts/generate_brief_pdf.py",
+        "--input", str(txt),
+        "--output", str(pdf)
     ], check=True)
     return str(pdf)
 
+# ---- Fixture auto qui alimente tests/samples/brief_sample.pdf ----
 @pytest.fixture(scope="session", autouse=True)
-def ensure_static_briefs(tmp_path_factory):
-    """
-    Génère les trois briefs statiques attendus par
-    test_extract_text_from_pdf_schema.py et test_integration.py
-    """
+def ensure_static_sample(tmp_path_factory):
     sample_dir = Path("tests/samples")
     sample_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1) base .txt commun
-    base_txt = tmp_path_factory.mktemp("static") / "brief.txt"
-    base_txt.write_text(
+    # créer un txt minimal
+    txt = tmp_path_factory.mktemp("static") / "brief.txt"
+    txt.write_text(
         "TITRE STATIC\n\n"
         "Problème\n"
-        "Brief pour tests statiques.\n\n"
+        "Brief statique pour les tests d’intégration.\n\n"
         "Objectifs\n"
         "Test statique.\n\n"
         "KPIs\n"
-        "- +5 éléments.\n",
+        "- TEST1\n",
         encoding="utf-8"
     )
 
-    # 2) brief_simple.pdf  (1 page)
-    pdf_simple = tmp_path_factory.mktemp("static") / "brief_simple.pdf"
+    # générer le PDF statique
+    pdf = tmp_path_factory.mktemp("static") / "brief_static.pdf"
     subprocess.run([
-        "python", "scripts/generate_sample_pdf.py",
-        "-i", str(base_txt), "-o", str(pdf_simple)
+        "python", "scripts/generate_brief_pdf.py",
+        "--input", str(txt),
+        "--output", str(pdf)
     ], check=True)
-    shutil.copy(str(pdf_simple), str(sample_dir / "brief_simple.pdf"))
 
-    # 3) brief_multi.pdf   (multi‐page via make_valid_test_pdf.py)
-    pdf_multi = tmp_path_factory.mktemp("static") / "brief_multi.pdf"
-    subprocess.run([
-        "python", "scripts/make_valid_test_pdf.py",
-        "-i", str(base_txt), "-o", str(pdf_multi), "-p", "4"
-    ], check=True)
-    shutil.copy(str(pdf_multi), str(sample_dir / "brief_multi.pdf"))
-
-    # 4) brief_sample.pdf  (pour intégration CLI / email_handler / slack_handler)
-    pdf_sample = tmp_path_factory.mktemp("static") / "brief_sample.pdf"
-    subprocess.run([
-        "python", "scripts/generate_sample_pdf.py",
-        "-i", str(base_txt), "-o", str(pdf_sample)
-    ], check=True)
-    shutil.copy(str(pdf_sample), str(sample_dir / "brief_sample.pdf"))
-
+    # copier sous tests/samples/brief_sample.pdf
+    dest = sample_dir / "brief_sample.pdf"
+    shutil.copy(str(pdf), str(dest))
     return None
