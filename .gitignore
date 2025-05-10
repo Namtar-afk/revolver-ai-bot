@@ -40,3 +40,5 @@ dist/
 # OS files
 Thumbs.db
 ehthumbs.db
+tests/samples/*.pdf
+tests/samples/*.txt
