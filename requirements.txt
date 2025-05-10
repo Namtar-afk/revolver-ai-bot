@@ -4,12 +4,15 @@ appnope==0.1.4
 asttokens==3.0.0
 attrs==25.3.0
 babel==2.17.0
+beautifulsoup4==4.13.4
 black==25.1.0
 blis==1.3.0
+cachetools==5.5.2
 catalogue==2.0.10
 certifi==2025.4.26
 cffi==1.17.1
 cfgv==3.4.0
+chardet==5.2.0
 charset-normalizer==3.4.2
 click==8.1.8
 cloudpathlib==0.21.0
@@ -25,10 +28,18 @@ decorator==5.2.1
 distlib==0.3.9
 docutils==0.21.2
 executing==2.2.0
+feedparser==6.0.11
 filelock==3.18.0
 flake8==7.2.0
 fonttools==4.57.0
 fr_core_news_md @ https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.8.0/fr_core_news_md-3.8.0-py3-none-any.whl#sha256=8a70d090a54ef77525c3ffa6a6195b9d365f2cf369ae1cd84ede93f3d709079e
+google-api-core==2.24.2
+google-api-python-client==2.169.0
+google-auth==2.40.1
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.2
+googleapis-common-protos==1.70.0
+httplib2==0.22.0
 identify==2.6.10
 idna==3.10
 imagesize==1.4.1
@@ -46,6 +57,7 @@ jupyter_core==5.7.2
 kiwisolver==1.4.8
 langcodes==3.5.0
 language_data==1.3.0
+lxml==5.4.0
 marisa-trie==1.2.1
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
@@ -59,7 +71,9 @@ mypy_extensions==1.1.0
 nest-asyncio==1.6.0
 nodeenv==1.9.1
 numpy==2.2.5
+oauthlib==3.2.2
 packaging==25.0
+pandas==2.2.3
 parso==0.8.4
 pathspec==0.12.1
 pdfminer.six==20250327
@@ -71,9 +85,13 @@ pluggy==1.5.0
 pre_commit==4.2.0
 preshed==3.0.9
 prompt_toolkit==3.0.51
+proto-plus==1.26.1
+protobuf==6.30.2
 psutil==7.0.0
 ptyprocess==0.7.0
 pure_eval==0.2.3
+pyasn1==0.6.1
+pyasn1_modules==0.4.2
 pycodestyle==2.13.0
 pycparser==2.22
 pydantic==2.11.4
@@ -85,19 +103,28 @@ pypdfium2==4.30.1
 pytest==8.3.5
 pytest-cov==6.1.1
 python-dateutil==2.9.0.post0
+pytrends==4.9.2
+pytz==2025.2
 PyYAML==6.0.2
 pyzmq==26.4.0
 referencing==0.36.2
+reportlab==4.4.0
 requests==2.32.3
+requests-oauthlib==2.0.0
 rich==14.0.0
 roman-numerals-py==3.1.0
 rpds-py==0.24.0
+rsa==4.9.1
 ruff==0.11.7
 setuptools==80.3.1
+sgmllib3k==1.0.0
 shellingham==1.5.4
 six==1.17.0
+slack_bolt==1.23.0
+slack_sdk==3.35.0
 smart-open==7.1.0
 snowballstemmer==2.2.0
+soupsieve==2.7
 spacy==3.8.5
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
@@ -110,7 +137,8 @@ sphinxcontrib-qthelp==2.0.0
 sphinxcontrib-serializinghtml==2.0.0
 srsly==2.5.1
 stack-data==0.6.3
--e git+ssh://git@gitlab.com/romeo.cavazza/stu-core.git@d18a40206d1c6d20f4951ab3a0ddc39889dd990b#egg=stu_core
+# Editable install with no version control (stu-core==0.1.0)
+-e /Users/romeocavazza/Desktop/revolver-ai-bot/src/stu-core
 sympy==1.14.0
 thinc==8.3.6
 tornado==6.4.2
@@ -119,6 +147,8 @@ traitlets==5.14.3
 typer==0.15.3
 typing-inspection==0.4.0
 typing_extensions==4.13.2
+tzdata==2025.2
+uritemplate==4.1.1
 urllib3==2.4.0
 virtualenv==20.30.0
 wasabi==1.1.3
