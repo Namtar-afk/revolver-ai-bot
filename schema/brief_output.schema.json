@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BriefOutput",
+  "type": "object",
+  "properties": {
+    "problem":        { "type": "string" },
+    "objectives":     { "type": "string" },
+    "KPIs":           { "type": "string" },
+    "budget":         { "type": "string" },
+    "deadline":       { "type": "string", "format": "date" },
+    "audience":       { "type": "string" },
+    "deliverables":   { "type": "string" }
+  },
+  "required": ["problem","objectives","KPIs"]
+}
