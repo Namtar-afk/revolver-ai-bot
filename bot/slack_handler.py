@@ -2,9 +2,9 @@ import os
 import sys
 import argparse
 import tempfile
-from bot.orchestrator import process_brief, run_veille
-from utils.logger import logger
 
+from bot.orchestrator import process_brief, run_veille, run_analyse
+from utils.logger import logger
 
 def simulate_slack_upload():
     """Simulateur CLI : parse un PDF local."""
@@ -16,7 +16,6 @@ def simulate_slack_upload():
     sections = process_brief(sample)
     print(f"\n=== Sections extraites (simulateur) ===\n{sections}\n")
 
-
 def handle_veille_command():
     """Commande CLI/Slack pour déclencher la veille média."""
     output = os.getenv("VEILLE_OUTPUT_PATH", "data/veille.csv")
@@ -25,6 +24,14 @@ def handle_veille_command():
     logger.info(msg)
     return msg
 
+def handle_analyse_command():
+    """Commande CLI/Slack pour déclencher l'analyse des items de veille."""
+    try:
+        run_analyse()
+        return "✅ Analyse terminée, résultats envoyés."
+    except Exception as e:
+        logger.error(f"Erreur analyse Slack : {e}")
+        return f"❌ L'analyse a échoué : {e}"
 
 def real_slack_listener():
     """Listener Slack réel via Slack Bolt + Socket Mode."""
@@ -39,23 +46,29 @@ def real_slack_listener():
     SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
     SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
     if not SLACK_BOT_TOKEN or not SLACK_APP_TOKEN:
-        logger.error("Tokens Slack manquants en env vars")
-        sys.exit(1)
+        logger.warning("Tokens Slack manquants — passage en simulateur.")
+        simulate_slack_upload()
+        sys.exit(0)
 
     app = App(token=SLACK_BOT_TOKEN)
 
     @app.event("message")
     def handle_message_events(body, say, client):
         evt = body.get("event", {})
+        text = evt.get("text", "").strip().lower()
 
-        # texte pur (!veille)
-        text = evt.get("text", "")
-        if text and text.strip().lower() == "!veille":
-            resp = handle_veille_command()
-            say(resp)
+        # Commande veille
+        if text == "!veille":
+            say(handle_veille_command())
             return
 
-        # fichier upload PDF
+        # Commande analyse
+        if text == "!analyse":
+            say("🧠 Lancement de l’analyse, ça arrive…")
+            say(handle_analyse_command())
+            return
+
+        # Fichier upload PDF
         for f in evt.get("files", []):
             if f.get("filetype") != "pdf":
                 continue
@@ -79,16 +92,19 @@ def real_slack_listener():
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
     handler.start()
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Slack handler CLI / real listener")
     parser.add_argument(
         "--simulate", action="store_true",
-        help="lancer le simulateur CLI (parse un sample local)"
+        help="Lancer le simulateur CLI (parse un sample local)"
     )
     parser.add_argument(
         "--veille", action="store_true",
-        help="déclencher la veille média"  
+        help="Déclencher la veille média"
+    )
+    parser.add_argument(
+        "--analyse", action="store_true",
+        help="Déclencher l'analyse des items de veille"
     )
     args = parser.parse_args()
 
@@ -96,5 +112,7 @@ if __name__ == "__main__":
         simulate_slack_upload()
     elif args.veille:
         print(handle_veille_command())
+    elif args.analyse:
+        print(handle_analyse_command())
     else:
         real_slack_listener()
