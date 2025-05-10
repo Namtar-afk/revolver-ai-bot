@@ -1,4 +1,42 @@
+# Byte-compiled / caches
+__pycache__/
+*/__pycache__/
 
-# macOS system files
+# Virtualenv
+venv/
+.venv/
+
+# MacOS
 .DS_Store
-.DS_Store
+
+# Data et samples temporaires
+data/
+inbox/
+
+# Fixtures et caches de tests
+tests/fixtures/
+tests/tests/
+tests/__pycache__/
+
+# Python artifacts
+*.py[cod]
+*.egg
+*.egg-info/
+
+# Build artifacts
+build/
+dist/
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+ehthumbs.db
