@@ -1,29 +1,73 @@
 #!/usr/bin/env python3
 """
-Produit un PDF multi-page avec annexes pour tester robustesse.
+Génère un PDF multi‑page de test à partir d'un .txt, avec X paragraphes par page (alias --pages pour les tests).
+
+Usage:
+  python scripts/make_valid_test_pdf.py \
+    -i input.txt -o output.pdf [-p PARAS] [--pages PARAS]
 """
 import argparse
+import textwrap
 from pathlib import Path
-from scripts.generate_sample_pdf import text_to_pdf, register_font
 from reportlab.lib.pagesizes import LETTER
+from reportlab.pdfgen import canvas
 
-def generate(input_txt: Path, output_pdf: Path, pages: int):
-    content = input_txt.read_text(encoding="utf-8")
-    content += "\n\n" + "\n\n".join(f"Annexe page {i}" for i in range(1, pages+1))
-    tmp = input_txt.parent/"_tmp.txt"
-    tmp.write_text(content, encoding="utf-8")
-    font = register_font(Path("/Library/Fonts/Arial.ttf"))
-    text_to_pdf(tmp, output_pdf, font, LETTER, 72, 14, 85)
-    tmp.unlink()
-    print(f"[OK] Multi-page PDF généré : {output_pdf}")
+def txt_to_multipage_pdf(input_path: Path, output_path: Path, paras_per_page: int):
+    text = input_path.read_text(encoding="utf-8")
+    paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+
+    c = canvas.Canvas(str(output_path), pagesize=LETTER)
+    width, height = LETTER
+    margin = 72
+    line_h = 14
+    font = "Helvetica"
+    x = margin
+    y = height - margin
+
+    def new_page():
+        c.showPage()
+        c.setFont(font, 12)
+
+    c.setFont(font, 12)
+    for idx, para in enumerate(paragraphs):
+        if idx > 0 and idx % paras_per_page == 0:
+            new_page()
+            y = height - margin
+        for line in textwrap.wrap(para, width=80):
+            if y < margin:
+                new_page()
+                y = height - margin
+            c.drawString(x, y, line)
+            y -= line_h
+        y -= line_h
+
+    c.save()
+    print(f"[OK] multi‑page PDF généré : {output_path}")
 
 def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("-i","--input",type=Path,required=True)
-    p.add_argument("-o","--output",type=Path,required=True)
-    p.add_argument("-p","--pages",type=int,default=5)
+    p = argparse.ArgumentParser(
+        description="Génère un PDF multi‑page de test depuis un .txt"
+    )
+    p.add_argument(
+        "-i", "--input", required=True, type=Path, help="Fichier texte source"
+    )
+    p.add_argument(
+        "-o", "--output", required=True, type=Path, help="PDF de sortie"
+    )
+    p.add_argument(
+        "-p", "--paras", type=int, dest="paras",
+        help="Nbr de paragraphes par page",
+        default=1
+    )
+    p.add_argument(
+        "--pages", type=int, dest="paras",
+        help="Alias --pages pour tests", default=None
+    )
     args = p.parse_args()
-    generate(args.input,args.output,args.pages)
 
-if __name__=="__main__":
+    # paras déjà fixé par dest alias
+    paras = args.paras if args.paras is not None else 1
+    txt_to_multipage_pdf(args.input, args.output, paras)
+
+if __name__ == "__main__":
     main()
