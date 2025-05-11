@@ -29,6 +29,13 @@ class StateOfPlaySection(BaseModel):
     theme: str
     evidence: List[Action]
 
+# Alias for backward compatibility
+TrendItem = StateOfPlaySection
+
+class Idea(BaseModel):
+    theme: str
+    evidence: List[Action]
+
 class Idea(BaseModel):
     title: str
     body: str
