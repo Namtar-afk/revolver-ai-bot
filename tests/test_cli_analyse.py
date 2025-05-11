@@ -8,19 +8,17 @@ import subprocess
 from bot.orchestrator import process_brief, run_veille, run_analyse
 from utils.logger import logger
 
-# Si Slack Bolt n'est pas installé, on fournit un dummy slack_app
-try:
-    from slack_bolt import App
-    slack_app = App()
-except ImportError:
-    class _DummyApp:
-        def command(self, *args, **kwargs):
-            def decorator(f): return f
-            return decorator
-        def event(self, *args, **kwargs):
-            def decorator(f): return f
-            return decorator
-    slack_app = _DummyApp()
+# dummy slack_app pour import/tests, strictement NO BOLT ici
+class _DummyApp:
+    def command(self, *args, **kwargs):
+        def deco(f): return f
+        return deco
+    def event(self, *args, **kwargs):
+        def deco(f): return f
+        return deco
+
+slack_app = _DummyApp()
+
 
 def simulate_slack_upload():
     """Simulateur CLI : parse un PDF local."""
@@ -30,15 +28,15 @@ def simulate_slack_upload():
         return
     logger.info("[Slack][Sim] Lecture du sample PDF…")
     sections = process_brief(sample)
-    print(f"\n=== Sections extraites (simulateur) ===\n{sections}\n")
+    print(f"=== Simulé ===\n{sections}")
+
 
 def handle_veille_command():
     """Commande CLI/Slack pour déclencher la veille média."""
     output = os.getenv("VEILLE_OUTPUT_PATH", "data/veille.csv")
     items = run_veille(output)
-    msg = f"✅ Veille lancée, {len(items)} items sauvegardés dans `{output}`."
-    logger.info(msg)
-    return msg
+    return f"✅ {len(items)} items sauvegardés dans `{output}`."
+
 
 def handle_analyse_command():
     """Commande CLI/Slack pour déclencher l'analyse des items de veille."""
@@ -49,61 +47,74 @@ def handle_analyse_command():
         logger.error(f"Erreur analyse Slack : {e}")
         return f"❌ L'analyse a échoué : {e}"
 
+
 def handle_report_command(ack, respond, command):
-    """Commande CLI/Slack pour générer le rapport PPT."""
-    # ack()  # on peut appeler ack ici si Bolt est présent
-    # respond("🔄 Génération du rapport en cours…")
+    """Commande Slack pour générer le rapport PPT."""
+    ack()
     output = "report.pptx"
     subprocess.run(
         ["python", "-m", "bot.orchestrator", "--report", output],
         check=True
     )
-    # respond(f"📊 Rapport prêt !", files=[output])
-    return f"📊 Rapport généré : {output}"
+    respond(f"📊 Rapport généré : {output}")
+
 
 def real_slack_listener():
     """Listener Slack réel via Slack Bolt + Socket Mode."""
+    # ⚠️ Import de Bolt **uniquement ici**
     try:
+        from slack_bolt import App
         from slack_bolt.adapter.socket_mode import SocketModeHandler
-    except ImportError as e:
-        logger.error(f"Slack Bolt non installé : {e}")
+        from slack_bolt.error import BoltError
+    except ImportError:
+        logger.error("Slack Bolt non installé — impossible de lancer le listener réel")
         sys.exit(1)
 
-    SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-    SLACK_APP_TOKEN = os.getenv("SLACK_APP_TOKEN")
-    if not SLACK_BOT_TOKEN or not SLACK_APP_TOKEN:
-        logger.warning("Tokens Slack manquants — lancement simulateur")
+    token     = os.getenv("SLACK_BOT_TOKEN")
+    app_token = os.getenv("SLACK_APP_TOKEN")
+    if not token or not app_token:
+        logger.warning("Tokens Slack manquants — lancement du simulateur")
         simulate_slack_upload()
-        sys.exit(0)
+        return
 
-    @slack_app.event("message")
-    def message_listener(body, say, client):
+    try:
+        app = App(token=token)
+    except BoltError:
+        logger.warning("Token Slack invalide — simulateur")
+        simulate_slack_upload()
+        return
+
+    @app.command("/report")
+    def _report(ack, respond, command):
+        handle_report_command(ack, respond, command)
+
+    @app.event("message")
+    def _evt(body, say, client):
         text = body.get("event", {}).get("text", "").strip().lower()
         if text == "!veille":
             say(handle_veille_command())
-            return
-        if text == "!analyse":
-            say("🧠 Lancement de l’analyse…")
+        elif text == "!analyse":
             say(handle_analyse_command())
-            return
-        for f in body.get("event", {}).get("files", []):
-            if f.get("filetype") != "pdf":
-                continue
-            info = client.files_info(file=f["id"])["file"]
-            url = info["url_private_download"]
-            headers = {"Authorization": f"Bearer {SLACK_BOT_TOKEN}"}
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-                tmp.write(requests.get(url, headers=headers).content)
-                path = tmp.name
-            try:
-                sections = process_brief(path)
-                say(f"✅ Brief analysé :\n```{sections}```")
-            except Exception as e:
-                logger.error(f"Erreur traitement PDF : {e}")
-                say(f"❌ Échec du traitement : {e}")
+        else:
+            # gestion d'upload PDF
+            for f in body.get("event", {}).get("files", []):
+                if f.get("filetype") != "pdf": 
+                    continue
+                info = client.files_info(file=f["id"])["file"]
+                url = info.get("url_private_download")
+                headers = {"Authorization": f"Bearer {token}"}
+                with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                    tmp.write(requests.get(url, headers=headers).content)
+                    path = tmp.name
+                try:
+                    sections = process_brief(path)
+                    say(f"✅ Brief analysé :\n```{sections}```")
+                except Exception as e:
+                    logger.error(f"Erreur traitement PDF : {e}")
+                    say(f"❌ Échec du traitement : {e}")
 
-    handler = SocketModeHandler(slack_app, SLACK_APP_TOKEN)
-    handler.start()
+    SocketModeHandler(app, app_token).start()
+
 
 if __name__ == "__main__":
     import argparse
