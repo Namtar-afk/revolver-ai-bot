@@ -96,3 +96,20 @@ def generate_recommendation(
         timeline=timeline,
         budget=budget,
     )
+
+# ---- Nouveaux stubs pour compléter la génération ----
+
+from typing import List
+from reco.models import Idea, Milestone, BudgetItem
+
+def generate_ideas(analysis, trends) -> List[Idea]:
+    # TODO : appeler LLM via prompts/ideas.md
+    return []
+
+def generate_timeline(analysis, trends) -> List[Milestone]:
+    # TODO : appeler LLM via prompts/timeline.md
+    return []
+
+def generate_budget(analysis, trends) -> List[BudgetItem]:
+    # TODO : appeler LLM via prompts/budget.md
+    return []
