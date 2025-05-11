@@ -47,3 +47,5 @@ data/veille.csv
 __pycache__/
 brief*.pdf
 mini*.pdf
+*.swp
+report.pptx
