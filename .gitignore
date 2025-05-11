@@ -45,3 +45,5 @@ tests/samples/*.txt
 data/veille.csv
 *.pyc
 __pycache__/
+brief*.pdf
+mini*.pdf
