@@ -42,3 +42,6 @@ Thumbs.db
 ehthumbs.db
 tests/samples/*.pdf
 tests/samples/*.txt
+data/veille.csv
+*.pyc
+__pycache__/
