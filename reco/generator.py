@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+import openai
+import pathlib
 from typing import List
+
 from reco.models import (
     DeckData,
     BriefReminder,
@@ -13,28 +16,36 @@ from reco.models import (
     Action,
 )
 
+# Chargez votre clé API dans une variable d’environnement, e.g. OPENAI_API_KEY
+openai.api_key = "YOUR_API_KEY_HERE"
+
+
+def _call_llm(prompt_path: str, context: str) -> str:
+    """
+    Lit le prompt depuis le fichier Markdown, injecte le contexte
+    et renvoie la réponse brute du LLM.
+    """
+    template = pathlib.Path(prompt_path).read_text()
+    full_prompt = f"{template}\n\nContexte :\n{context}"
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": full_prompt}]
+    )
+    return response.choices[0].message.content.strip()
+
+
 def generate_recommendation(
     brief: BriefReminder,
     trends: List[StateOfPlaySection]
 ) -> DeckData:
     """
-    Stub générique de génération de recommandations.
-    Reçoit un brief et une liste d'insights (StateOfPlaySection) et
-    produit un DeckData avec la structure standard:
-
-    1. Brief Reminder
-    2. Brand Overview
-    3. State of Play
-    4. 3 x Ideas
-    5. Timeline
-    6. Budget
-
-    À remplacer par des vrais appels LLM.
+    Génère un DeckData complet à partir du brief et des trends.
+    Appelle les sous-fonctions pour chaque partie du deck.
     """
-    # 1. Brief Reminder (on réutilise le modèle reçu)
+    # 1. Brief Reminder
     brief_reminder = brief
 
-    # 2. Brand Overview (vide / générique)
+    # 2. Brand Overview
     brand_overview = BrandOverview(
         description_paragraphs=[
             "À compléter : résumé de la perception et de l’histoire de la marque."
@@ -66,27 +77,26 @@ def generate_recommendation(
         ],
     )
 
-    # 3. State of Play (on réutilise les trends fournies)
+    # 3. State of Play
     state_of_play = trends
 
-    # 4. Trois idées génériques
-    ideas = [
-        Idea(title="Idée #1", body="À remplir : proposition stratégique 1."),
-        Idea(title="Idée #2", body="À remplir : proposition stratégique 2."),
-        Idea(title="Idée #3", body="À remplir : proposition stratégique 3."),
-    ]
+    # Concaténez brief + trends pour le contexte LLM
+    context = f"Brief : {brief.json()}\nTrends : {[t.json() for t in trends]}"
 
-    # 5. Timeline – étapes clés génériques
-    timeline = [
-        Milestone(milestone="Étape 1", date="YYYY-MM-DD"),
-        Milestone(milestone="Étape 2", date="YYYY-MM-DD"),
-    ]
+    # 4. Ideas via LLM
+    ideas_raw = _call_llm("prompts/ideas.md", context)
+    # TODO : parser ideas_raw en List[Idea]
+    ideas: List[Idea] = []
 
-    # 6. Budget – postes génériques
-    budget = [
-        BudgetItem(item="Production", amount=0.0),
-        BudgetItem(item="Veille & Analyse", amount=0.0),
-    ]
+    # 5. Timeline via LLM
+    timeline_raw = _call_llm("prompts/timeline.md", context)
+    # TODO : parser timeline_raw en List[Milestone]
+    timeline: List[Milestone] = []
+
+    # 6. Budget via LLM
+    budget_raw = _call_llm("prompts/budget.md", context)
+    # TODO : parser budget_raw en List[BudgetItem]
+    budget: List[BudgetItem] = []
 
     return DeckData(
         brief_reminder=brief_reminder,
@@ -97,19 +107,23 @@ def generate_recommendation(
         budget=budget,
     )
 
-# ---- Nouveaux stubs pour compléter la génération ----
 
-from typing import List
-from reco.models import Idea, Milestone, BudgetItem
+# Fonctions séparées si besoin
 
 def generate_ideas(analysis, trends) -> List[Idea]:
-    # TODO : appeler LLM via prompts/ideas.md
+    context = f"Analysis: {analysis.json()}\nTrends: {[t.json() for t in trends]}"
+    ideas_raw = _call_llm("prompts/ideas.md", context)
+    # TODO : parser ideas_raw
     return []
 
 def generate_timeline(analysis, trends) -> List[Milestone]:
-    # TODO : appeler LLM via prompts/timeline.md
+    context = f"Analysis: {analysis.json()}\nTrends: {[t.json() for t in trends]}"
+    timeline_raw = _call_llm("prompts/timeline.md", context)
+    # TODO : parser timeline_raw
     return []
 
 def generate_budget(analysis, trends) -> List[BudgetItem]:
-    # TODO : appeler LLM via prompts/budget.md
+    context = f"Analysis: {analysis.json()}\nTrends: {[t.json() for t in trends]}"
+    budget_raw = _call_llm("prompts/budget.md", context)
+    # TODO : parser budget_raw
     return []
