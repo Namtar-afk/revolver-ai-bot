@@ -1,39 +1,35 @@
-import json  # bien au début
+#!/usr/bin/env python3
+"""
+CLI principal : parse un brief_sample.pdf et affiche les sections,
+même si la validation JSON échoue.
+"""
+import json
+import os
+import sys
+from jsonschema import validate, ValidationError
 from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
-from jsonschema import validate
-from utils.logger import logger
 
 def main():
-    # Charger le schéma JSON pour la validation
-    try:
-        with open("schema/brief_schema.json") as f:
-            schema = json.load(f)
-    except Exception as e:
-        logger.error(f"Erreur de chargement du schéma : {e}")
-        exit(1)
-
-    # Extraction du texte depuis le PDF
-    text = extract_text_from_pdf("tests/samples/brief_sample.pdf")
-    if not text:
-        logger.error("❌ Échec de l'extraction PDF.")
-        exit(1)
-
-    # Segmentation sémantique
+    pdf = "tests/samples/brief_sample.pdf"
+    text = extract_text_from_pdf(pdf)
     sections = extract_brief_sections(text)
-    logger.info("✅ Extraction des sections :")
-    logger.info(json.dumps(sections, indent=2, ensure_ascii=False))
 
-    # Validation de la structure du brief
+    schema_path = os.path.join("schema", "brief_schema.json")
+    with open(schema_path, encoding="utf-8") as f:
+        schema = json.load(f)
+
+    # 1) On affiche toujours les sections
+    print(json.dumps(sections, ensure_ascii=False, indent=2))
+
+    # 2) Puis on valide et on affiche le résultat
     try:
         validate(instance=sections, schema=schema)
-        logger.info("✅ Validation JSON réussie.")
-        # ⚠️ messages pour le test d'intégration CLI
+        # print sans file= pour aller sur stdout
         print("Validation JSON réussie")
-        print("Brief valide")
-    except Exception as e:
-        logger.error(f"❌ Erreur de validation : {e}")
-        exit(1)
+    except ValidationError as e:
+        # garde stderr pour le message d'erreur
+        print(f"Validation JSON échouée : {e.message}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
