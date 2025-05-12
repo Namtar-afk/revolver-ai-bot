@@ -3,13 +3,14 @@
   "title": "BriefOutput",
   "type": "object",
   "properties": {
-    "problem":        { "type": "string" },
-    "objectives":     { "type": "string" },
-    "KPIs":           { "type": "string" },
-    "budget":         { "type": "string" },
-    "deadline":       { "type": "string", "format": "date" },
-    "audience":       { "type": "string" },
-    "deliverables":   { "type": "string" }
+    "title": { "type": "string", "minLength": 3 },
+    "objectives": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 3 },
+      "minItems": 1
+    },
+    "internal_reformulation": { "type": "string", "minLength": 5 },
+    "summary": { "type": "string", "minLength": 5 }
   },
-  "required": ["problem","objectives","KPIs"]
+  "required": ["title", "objectives", "internal_reformulation", "summary"]
 }

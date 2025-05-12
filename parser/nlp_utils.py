@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 import re
-from typing import Dict
+from typing import Dict, List
 
-def extract_brief_sections(text: str) -> Dict[str, str]:
+
+def extract_brief_sections(text: str) -> Dict[str, object]:
     """
-    Extrait 'problem', 'objectives' et 'KPIs' d'un texte brut,
-    détecte les titres FR/EN (avec ou sans deux-points) et capture
-    tout le bloc jusqu'au titre suivant.
+    Extrait les sections principales du brief (problème, objectifs, KPIs)
+    et les reformule dans un format compatible avec BriefReminder.
     """
     sections = {"problem": "", "objectives": "", "KPIs": ""}
-    # Normalisation des retours chariot
     text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-    # On autorise un deux-points optionnel après le titre
+    # Titre de section possible (fr/en) avec deux-points optionnel
     title_re = r"(?:probl[eèé]me|problem|objectifs?|objectives|kpis?|indicateurs?)"
     pattern = re.compile(
         rf"(?P<title>^\s*{title_re}\s*:?)\s*"
@@ -21,7 +20,7 @@ def extract_brief_sections(text: str) -> Dict[str, str]:
     )
 
     for m in pattern.finditer(text):
-        title = m.group("title").strip().lower().rstrip(':')
+        title = m.group("title").strip().lower().rstrip(":")
         body = m.group("body").strip().replace("\n", " ")
         if "probl" in title:
             sections["problem"] = body
@@ -30,9 +29,16 @@ def extract_brief_sections(text: str) -> Dict[str, str]:
         else:
             sections["KPIs"] = body
 
-    # If any section is still empty, fill with a default placeholder
-    for k, v in sections.items():
-        if len(v) < 5:
-            sections[k] = "Non précisé"
+    # Séparation des objectifs en liste
+    raw_objectives = sections["objectives"]
+    objectives = [s.strip() for s in re.split(r"[\n•;\-–]", raw_objectives) if len(s.strip()) > 2]
+    if not objectives:
+        objectives = [raw_objectives.strip()] if raw_objectives.strip() else ["Objectif générique"]
 
-    return sections
+    # Formattage final conforme au modèle BriefReminder
+    return {
+        "title": "Brief extrait automatiquement",
+        "objectives": objectives,
+        "internal_reformulation": f"Reformulation automatique du problème : {sections['problem']}",
+        "summary": f"Résumé automatique des KPIs : {sections['KPIs']}"
+    }

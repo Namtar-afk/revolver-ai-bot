@@ -11,23 +11,12 @@ requires-python = ">=3.10"
 authors = [
   { name = "Romeo Cavazza", email = "romeo@example.com" }
 ]
-dependencies = [
-  "pdfplumber>=0.11.6",
-  "feedparser>=6.0.11",
-]
+dependencies = []
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = [
-  "bot*",
-  "parser*",
-  "pptx_generator*",
-  "reco*",
-  "utils*",
-]
-exclude = [
-  "tests*",
-  "schema*",
-  "scripts*",
-  "prompts*",
+packages = [
+  { include = "bot*" },
+  { include = "parser*" },
+  { include = "pptx_generator*" },
+  { include = "reco*" },
+  { include = "utils*" }
 ]
