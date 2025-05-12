@@ -13,10 +13,11 @@ authors = [
 ]
 dependencies = []
 
-packages = [
-  { include = "bot*" },
-  { include = "parser*" },
-  { include = "pptx_generator*" },
-  { include = "reco*" },
-  { include = "utils*" }
+[tool.setuptools.packages.find]
+include = [
+  "bot*",
+  "parser*",
+  "pptx_generator*",
+  "reco*",
+  "utils*",
 ]

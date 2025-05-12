@@ -7,8 +7,8 @@ from jsonschema import validate, ValidationError
 
 from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
-from reco.generator import generate_recommendation
-from reco.models import DeckData, BriefReminder, StateOfPlaySection
+from reco.generator import generate_recommendation       # ← import corrigé
+from reco.models import DeckData, BriefReminder, StateOfPlaySection, BrandOverview
 import pptx_generator.slide_builder
 
 # Emplacement du sample interne pour le mode dev sans brief explicite
@@ -66,11 +66,12 @@ def main():
             brief_model = BriefReminder(**brief_dict)
         except Exception as e:
             print(f"[WARN] Conversion BriefReminder impossible : {e}", file=sys.stderr)
+            # Placeholder fallback pour éviter les erreurs Pydantic
             brief_model = BriefReminder(
-                title="",
-                objectives=[],
-                internal_reformulation="",
-                summary=""
+                title="Brief statique",
+                objectives=["Non précisé"],
+                internal_reformulation="Reformulation automatique",
+                summary="Résumé automatique"
             )
 
         # 2.2) Veille & tendances
@@ -93,10 +94,24 @@ def main():
             )
         except Exception as e:
             print(f"[WARN] generate_recommendation a échoué : {e}", file=sys.stderr)
-            # Fallback : fichier PPT vide
-            open(args.report, "wb").close()
-            print(f"[OK] Fichier vide créé : {args.report}")
-            sys.exit(0)
+            # Fallback deck minimal valide
+            deck = DeckData(
+                brief_reminder=brief_model,
+                brand_overview=BrandOverview(
+                    description_paragraphs=[],
+                    competitive_positioning={"axes": [], "brands": []},
+                    persona={"heading": [], "bullets": []},
+                    top3_competitor_actions=[]
+                ),
+                state_of_play=[],
+                insights=[],
+                hypotheses=[],
+                kpis=[],
+                executive_summary="",
+                ideas=[],
+                timeline=[],
+                budget=[]
+            )
 
         try:
             pptx_generator.slide_builder.build_ppt(deck, args.report)
