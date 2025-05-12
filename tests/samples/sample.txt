@@ -1,11 +1,12 @@
-Para1
+# Problème :
+Le marché des soins naturels est saturé, la différenciation devient difficile.
 
-Para2
+# Objectifs :
+- Accroître la notoriété de la marque
+- Générer de l’engagement sur Instagram
+- Positionner MycoBeauty comme expert en adaptogènes
 
-Para3
-
-Para4
-
-Para5
-
-Para6
+# KPIs :
+* +20% de reach organique
+* +10k abonnés Instagram
+* 3 collaborations influenceurs

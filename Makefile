@@ -1,54 +1,28 @@
-# === Config ===
-PYTHON := python
-PIP := pip
+.DEFAULT_GOAL := help
+
 VENV := .venv
-ACTIVATE := source $(VENV)/bin/activate
+PYTHON := $(VENV)/bin/python
+PIP := $(VENV)/bin/pip
 
-# === Commands ===
+help:  ## Affiche cette aide
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: help init install test lint format run clean reset
+venv:  ## Crée un environnement virtuel Python
+	python3 -m venv $(VENV)
+	$(PIP) install --upgrade pip
 
-help:
-	@echo "Makefile – commandes disponibles :"
-	@echo "  make init         → crée l'environnement virtuel"
-	@echo "  make install      → installe les dépendances"
-	@echo "  make test         → lance les tests unitaires"
-	@echo "  make lint         → vérifie la qualité du code"
-	@echo "  make format       → reformate avec black + isort"
-	@echo "  make run          → exécute le script CLI principal"
-	@echo "  make clean        → supprime les fichiers temporaires"
-	@echo "  make reset        → reset complet (venv + caches)"
+install: venv  ## Installe les dépendances du projet
+	$(PIP) install -r requirements.txt
+	$(PIP) install -r requirements-dev.txt || true
 
-# === Setup ===
+test:  ## Lance les tests avec pytest
+	source $(VENV)/bin/activate && pytest --maxfail=1 -v
 
-init:
-	@test -d $(VENV) || python3 -m venv $(VENV)
-	@$(ACTIVATE) && $(PIP) install --upgrade pip
+lint:  ## Lint le code Python
+	source $(VENV)/bin/activate && flake8 .
 
-install:
-	@$(ACTIVATE) && $(PIP) install -r requirements.txt
+run:  ## Lance le parseur CLI
+	source $(VENV)/bin/activate && $(PYTHON) run_parser.py --help
 
-# === Dev tools ===
-
-test:
-	@$(ACTIVATE) && pytest -vv tests
-
-lint:
-	@$(ACTIVATE) && flake8 reco parser
-
-format:
-	@$(ACTIVATE) && black . && isort .
-
-# === Run main CLI ===
-
-run:
-	@$(ACTIVATE) && $(PYTHON) run_parser.py --help
-
-# === Maintenance ===
-
-clean:
-	find . -type d -name '__pycache__' -exec rm -rf {} +
-	rm -rf .pytest_cache .mypy_cache .coverage htmlcov
-
-reset: clean
-	rm -rf $(VENV)
+docker:  ## Lance le projet avec Docker Compose
+	docker compose -f docker-compose.dev.yml up --build

@@ -1,23 +1,22 @@
-# Étape 1 : image de base légère avec Python 3.12
+# Utilise une image Python 3.12 légère
 FROM python:3.12-slim
 
-# Étape 2 : installation des dépendances système nécessaires
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    poppler-utils \
-    tesseract-ocr \
-    libreoffice \
-    curl \
-    build-essential \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Étape 3 : création du dossier de travail
+# Définit le répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Étape 4 : copie du code source
+# Copie des fichiers requirements en premier pour profiter du cache Docker
+COPY requirements.txt .
+COPY requirements-dev.txt .
+
+# Installation des dépendances
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-dev.txt
+
+# Copie du reste du code source dans le conteneur
 COPY . .
 
-# Étape 5 : installation des dépendances Python du projet
-RUN pip install --upgrade pip && pip install .
+# Port d’exposition (modifiable selon usage serveur)
+EXPOSE 8080
 
-# Étape 6 : définition de l’entrée du conteneur
-ENTRYPOINT ["python", "run_parser.py"]
+# Commande par défaut (modifiable si API ou Streamlit par exemple)
+CMD ["python", "run_parser.py", "--help"]

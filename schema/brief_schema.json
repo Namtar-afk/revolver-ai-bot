@@ -3,14 +3,35 @@
   "title": "Brief",
   "type": "object",
   "properties": {
-    "title": { "type": "string", "minLength": 3 },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "description": "Titre du projet ou de la mission"
+    },
     "objectives": {
       "type": "array",
-      "items": { "type": "string", "minLength": 3 },
-      "minItems": 1
+      "items": {
+        "type": "string",
+        "minLength": 3
+      },
+      "minItems": 1,
+      "description": "Liste des objectifs du brief"
     },
-    "internal_reformulation": { "type": "string", "minLength": 5 },
-    "summary": { "type": "string", "minLength": 5 }
+    "internal_reformulation": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Reformulation stratégique par l'équipe"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Résumé synthétique utilisé dans les prompts LLM"
+    }
   },
-  "required": ["title", "objectives", "internal_reformulation", "summary"]
+  "required": [
+    "title",
+    "objectives",
+    "internal_reformulation",
+    "summary"
+  ]
 }

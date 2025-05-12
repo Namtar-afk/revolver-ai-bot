@@ -8,13 +8,19 @@ version = "0.1.0"
 description = "Revolver AI Bot"
 readme = "README.md"
 requires-python = ">=3.10"
+
 authors = [
   { name = "Romeo Cavazza", email = "romeo@example.com" }
 ]
+
 dependencies = [
-  "python-pptx>=0.6.21",
+  "openai>=0.27.0",
   "python-dotenv>=1.0.0",
-  "openai>=0.27.0"
+  "python-pptx>=0.6.21",
+  "pdfplumber>=0.11.6",
+  "pydantic>=2.11.4",
+  "jsonschema>=4.23.0",
+  "requests>=2.32.3"
 ]
 
 [tool.setuptools.packages.find]

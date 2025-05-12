@@ -27,8 +27,11 @@ SCHEMA_PATH = os.path.join(
     "schema", "brief_schema.json"
 )
 
-# === Step 1 — Extraction + validation JSON ===
+
 def parse_brief(path: str) -> dict:
+    """
+    Extrait le texte du brief, segmente les sections et valide le JSON.
+    """
     print(f"[INFO] Lecture du brief : {path}", file=sys.stderr)
     text = extract_text_from_pdf(path)
     sections = extract_brief_sections(text)
@@ -43,7 +46,7 @@ def parse_brief(path: str) -> dict:
 
     return sections
 
-# === Step 2 — CLI Handler ===
+
 def main():
     parser = ArgumentParser(description="Revolver AI Bot Report CLI")
     parser.add_argument("--brief", help="PDF de brief client")
@@ -54,7 +57,7 @@ def main():
     brief_path = args.brief or DEFAULT_BRIEF
     brief_dict = parse_brief(brief_path)
 
-    # 2. Mode génération du rapport
+    # 2. Mode rapport
     if args.report:
         # a. Conversion dict → BriefReminder (Pydantic)
         try:
@@ -63,12 +66,12 @@ def main():
             print(f"[WARN] Conversion Pydantic échouée : {e}", file=sys.stderr)
             brief = BriefReminder(
                 title="Brief statique",
-                objectives=["Non précisé"],
-                internal_reformulation="Reformulation automatique",
-                summary="Résumé automatique"
+                objectives=["Objectif générique"],
+                internal_reformulation="Reformulation automatique du problème.",
+                summary="Résumé automatique de la situation."
             )
 
-        # b. Veille & tendances
+        # b. Veille
         try:
             from bot.monitoring import fetch_all_sources, save_to_csv
             from bot.analysis import detect_trends
@@ -76,16 +79,16 @@ def main():
             veille = fetch_all_sources()
             save_to_csv(veille, "data/veille.csv")
             raw_trends = detect_trends(veille)
-            trends = [StateOfPlaySection(theme=theme, evidence=[]) for theme in raw_trends]
+            trends = [StateOfPlaySection(theme=t, evidence=[]) for t in raw_trends]
         except Exception as e:
             print(f"[WARN] Veille indisponible : {e}", file=sys.stderr)
             trends = []
 
-        # c. Génération du deck
+        # c. Génération Deck
         try:
             deck: DeckData = generate_recommendation(brief, trends)
         except Exception as e:
-            print(f"[WARN] generate_recommendation a échoué : {e}", file=sys.stderr)
+            print(f"[WARN] Échec de génération du deck : {e}", file=sys.stderr)
             deck = DeckData(
                 brief_reminder=brief,
                 brand_overview=BrandOverview(
@@ -104,7 +107,7 @@ def main():
                 budget=[],
             )
 
-        # d. Génération du PPTX
+        # d. Export PPTX
         try:
             pptx_generator.slide_builder.build_ppt(deck, args.report)
             print(f"[OK] PPT généré : {args.report}")
@@ -115,7 +118,7 @@ def main():
 
         sys.exit(0)
 
-    # 3. Si pas de --report, afficher le JSON brut
+    # 3. Si pas de --report, affichage du JSON brut
     print(json.dumps(brief_dict, indent=2, ensure_ascii=False))
 
 

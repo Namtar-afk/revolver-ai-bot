@@ -1,13 +1,14 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  api:
+  revolver:
     build:
       context: .
-    command: uvicorn app.main:app --host 0.0.0.0 --reload
+      dockerfile: Dockerfile
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: ["python", "run_parser.py", "--help"]
+    ports:
+      - "8080:8080"
