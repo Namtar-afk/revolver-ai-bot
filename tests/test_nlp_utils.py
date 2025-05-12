@@ -3,6 +3,9 @@ from parser.nlp_utils import extract_brief_sections
 
 
 def test_extract_brief_sections_minimal():
+    """
+    Cas nominal avec des titres bien identifiés et des puces standard.
+    """
     raw_text = """
     Problème : Le marché des soins naturels est saturé.
     Objectifs :
@@ -17,20 +20,32 @@ def test_extract_brief_sections_minimal():
     result = extract_brief_sections(raw_text)
 
     assert isinstance(result, dict)
-    assert "title" in result
+    assert set(result.keys()) == {
+        "title", "objectives", "internal_reformulation", "summary"
+    }
+
     assert result["title"] == "Brief extrait automatiquement"
     assert isinstance(result["objectives"], list)
     assert len(result["objectives"]) >= 2
-    assert result["internal_reformulation"].startswith("Reformulation automatique du problème")
-    assert result["summary"].startswith("Résumé automatique des KPIs")
+    assert result["objectives"][0].lower().startswith("accroître")
+    assert "Reformulation automatique" in result["internal_reformulation"]
+    assert "Résumé automatique" in result["summary"]
 
 
 def test_extract_brief_sections_with_missing_titles():
-    # Pas de vrais titres mais test de fallback
+    """
+    Cas dégradé : aucun titre reconnu → fallback automatique.
+    """
     raw_text = "Texte sans structure claire"
     result = extract_brief_sections(raw_text)
 
+    assert isinstance(result, dict)
+    assert set(result.keys()) == {
+        "title", "objectives", "internal_reformulation", "summary"
+    }
+
     assert isinstance(result["objectives"], list)
     assert len(result["objectives"]) == 1
+    assert "Objectifs non identifiés" in result["objectives"][0]
     assert "Reformulation automatique" in result["internal_reformulation"]
     assert "Résumé automatique" in result["summary"]

@@ -1,145 +1,124 @@
-# Revolver AI Bot
+![Tests](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/romeocavazza/revolver-ai-bot/branch/main/graph/badge.svg)](https://codecov.io/gh/romeocavazza/revolver-ai-bot)
 
-Agent IA pour l'ingestion de briefs, la veille média, et la génération automatique de livrables (PDF, PPTX) via Slack ou ligne de commande.
+# 🤖 Revolver AI Bot
+
+Agent IA full-stack pour ingestion de briefs, veille stratégique, analyse automatique et génération de livrables professionnels (PDF, PPTX, API). Compatible Slack, CLI et FastAPI.
 
 ---
 
 ## 🚀 Installation rapide
 
-1. **Cloner le dépôt :**
+### 1. Cloner le dépôt
 
 ```bash
 git clone https://github.com/Namtar-afk/revolver-ai-bot.git
 cd revolver-ai-bot
 ```
 
-2. **Créer un environnement virtuel :**
+### 2. Environnement virtuel
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-3. **Installer les dépendances :**
+### 3. Installer les dépendances
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Configurer les clés API :**
+### 4. Clés API et config
 
 ```bash
 cp config.example.py config.py
-# Puis éditer config.py avec vos jetons : Slack, Google, SerpAPI, OpenAI...
+# Puis éditez `config.py` avec vos clés (OpenAI, Slack, Google, SerpAPI...)
 ```
 
----
+## 🧠 Fonctionnalités principales
 
-## 📁 Structure du projet
+- ✨ Parsing intelligent de briefs PDF → JSON valide
+- 📊 Analyse automatisée via LLM (insights, KPIs, hypothèses…)
+- 📈 Agrégation et clustering de veille (RSS, Google, TikTok…)
+- 🗞️ Génération de slides .pptx (Deck complet)
+- 🧪 API REST (FastAPI) pour intégration facile
+- 💬 Mode Slack bot interactif
+
+## 🗂 Structure du projet
 
 ```
 revolver-ai-bot/
-├── bot/                # Slack handler, veille, analyse, orchestration
-├── parser/             # Extraction PDF → texte → sections intelligibles
-├── pptx_generator/     # Génération de slides avec python-pptx
-├── prompts/            # Prompts LLM utilisés pour les générations
-├── reco/               # Moteur de recommandation + modèles Pydantic
-├── schema/             # JSON schemas pour valider les briefs en entrée
-├── utils/              # Outils génériques et logs
-├── scripts/            # Samples, générateurs, helpers
-├── tests/              # Unitaires et intégration
-├── data/               # Données générées (veille.csv, etc.)
-├── run_parser.py       # CLI brief : parse + validate (+ --report)
-├── run_monitor.py      # CLI veille média
-└── README.md           # Ce fichier
+├── bot/                ← Slack handler + veille + analyse
+├── parser/             ← Extraction et NLP des briefs PDF
+├── pptx_generator/     ← Génération de PowerPoint
+├── prompts/            ← Templates markdown pour GPT
+├── reco/               ← Recommandation stratégique (LLM + logique)
+├── schema/             ← JSON Schema pour validation
+├── api/                ← FastAPI server (REST endpoints)
+├── tests/              ← Unitaires, intégration et snapshots
+├── run_parser.py       ← CLI : PDF → JSON/PPTX
+├── run_monitor.py      ← CLI : veille
+└── README.md
 ```
 
----
+## 🧪 Tests unitaires
 
-## 💻 Utilisation CLI
+```bash
+export PYTHONPATH=$(pwd)
+pytest -v
+```
 
-### 1. Parser un brief statique
+Couverture : extraction, parsing, génération, intégration, Slack.
+
+## 🖥 Utilisation CLI
+
+### 1. Parser un brief
 
 ```bash
 python run_parser.py
 ```
 
-> Utilise `tests/samples/brief_sample.pdf` par défaut.
-
-### 2. Générer un rapport PPTX complet
+### 2. Générer un rapport complet (.pptx)
 
 ```bash
 python run_parser.py --report output.pptx
 ```
 
-> Chaine complète : brief → veille → analyse → reco → PPT.
-
-### 3. Exécuter la veille
+### 3. Lancer la veille
 
 ```bash
 python run_monitor.py --out data/veille.csv
 ```
 
-> Agrège RSS, tendances Google, signaux sociaux...
+## 🌐 API (FastAPI)
 
-### 4. Analyse des données de veille
+Démarrer le serveur :
 
 ```bash
-python bot/orchestrator.py --analyse
+uvicorn api.main:app --reload --port 8001
 ```
 
-> Génère les thèmes à partir de la veille.
+→ Accès live : http://127.0.0.1:8001/docs
 
----
+## 💬 Slack bot
 
-## 🔊 Intégration Slack
-
-### Configuration (env vars)
+Démarrer :
 
 ```bash
 export SLACK_BOT_TOKEN="xoxb-..."
 export SLACK_APP_TOKEN="xapp-..."
-```
-
-### Démarrer le bot
-
-```bash
 python bot/slack_handler.py
 ```
 
-### Commandes disponibles
+Commandes supportées :
 
-* `!veille` : relance la veille et affiche les résultats
-* `!analyse` : affiche les thèmes et tendances
-* `!report` : génère un rapport complet PPT
+- `!veille` — récupère et affiche la veille
+- `!analyse` — affiche les clusters de tendance
+- `!report` — génère un rapport PPT depuis Slack
 
-### Mode simulateur
+### Mode debug :
 
 ```bash
 python bot/slack_handler.py --simulate
 ```
-
-> Permet de tester les commandes sans Slack.
-
----
-
-## 🧪 Tests unitaires
-
-### Tout lancer :
-
-```bash
-export PYTHONPATH=$(pwd)
-pytest -q
-```
-
-### Tester l'analyse localement
-
-```bash
-./run_cli_analyse_test.sh
-```
-
----
-
-### Version actuelle : `v0.2`
-
-> Prochaine étape : génération de publication (article scientifique, annexes, simulations).
