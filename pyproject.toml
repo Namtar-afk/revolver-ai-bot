@@ -11,7 +11,11 @@ requires-python = ">=3.10"
 authors = [
   { name = "Romeo Cavazza", email = "romeo@example.com" }
 ]
-dependencies = []
+dependencies = [
+  "python-pptx>=0.6.21",
+  "python-dotenv>=1.0.0",
+  "openai>=0.27.0"
+]
 
 [tool.setuptools.packages.find]
 include = [
@@ -19,5 +23,5 @@ include = [
   "parser*",
   "pptx_generator*",
   "reco*",
-  "utils*",
+  "utils*"
 ]
