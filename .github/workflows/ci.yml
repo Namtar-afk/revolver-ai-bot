@@ -1,0 +1,38 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install .
+
+      - name: Run tests
+        run: pytest --maxfail=1 --disable-warnings -q
+
+      - name: Lint
+        run: flake8 .
+
+      - name: Build Docker image
+        run: docker build -t revolver-ai-bot:ci .
+
+      - name: Archive code.zip
+        run: |
+          zip -r code.zip . \
+            -x '*.pytest_cache*' '*.venv*' 'tests*' '*/__pycache__/*'
+      - name: Upload code.zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-archive
+          path: code.zip
