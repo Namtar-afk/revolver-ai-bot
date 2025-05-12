@@ -1,9 +1,16 @@
-import subprocess
-import shutil
+import sys
 from pathlib import Path
-import pytest
+
+# On ajoute la racine du dépôt au PYTHONPATH pour importer nos modules non installés
+depot_root = Path(__file__).parent.parent.resolve()
+if str(depot_root) not in sys.path:
+    sys.path.insert(0, str(depot_root))
 
 # -------- Fixture principale pour test_parser ------------
+import subprocess
+import shutil
+import pytest
+
 @pytest.fixture(scope="session")
 def generated_brief(tmp_path_factory):
     txt = tmp_path_factory.mktemp("dynamic") / "brief.txt"
@@ -19,7 +26,7 @@ def generated_brief(tmp_path_factory):
     )
     pdf = tmp_path_factory.mktemp("dynamic") / "brief.pdf"
     subprocess.run([
-        "python", "scripts/generate_brief_pdf.py",
+        sys.executable, "scripts/generate_brief_pdf.py",
         "--input", str(txt),
         "--output", str(pdf)
     ], check=True)
@@ -47,7 +54,7 @@ def ensure_static_sample(tmp_path_factory):
     # générer le PDF statique
     pdf = tmp_path_factory.mktemp("static") / "brief_static.pdf"
     subprocess.run([
-        "python", "scripts/generate_brief_pdf.py",
+        sys.executable, "scripts/generate_brief_pdf.py",
         "--input", str(txt),
         "--output", str(pdf)
     ], check=True)

@@ -2,6 +2,7 @@
 """
 Convertit un fichier texte en PDF “brief” paginé, avec une police built-in
 pour garantir une extraction fiable de texte (pdfminer compatible).
+
 Usage :
   python scripts/generate_brief_pdf.py \
     --input tests/samples/brief_multi.txt \
@@ -13,10 +14,12 @@ Usage :
 
 import argparse
 import textwrap
+import sys
 from pathlib import Path
 
 from reportlab.lib.pagesizes import LETTER, A4
 from reportlab.pdfgen import canvas
+
 
 def text_to_pdf(
     input_path: Path,
@@ -28,8 +31,7 @@ def text_to_pdf(
 ):
     text = input_path.read_text(encoding="utf-8")
     c = canvas.Canvas(str(output_path), pagesize=pagesize)
-    # Utilisation d'une police built-in (extractible)
-    c.setFont("Helvetica", 12)
+    c.setFont("Helvetica", 12)  # Built-in font = extractible
 
     width, height = pagesize
     x = margin
@@ -37,7 +39,6 @@ def text_to_pdf(
 
     for paragraph in text.split("\n\n"):
         for raw_line in paragraph.split("\n"):
-            # wrap sur le nombre max de caractères
             wrapped = textwrap.wrap(raw_line, max_chars) or [""]
             for line in wrapped:
                 if y < margin + line_height:
@@ -46,7 +47,6 @@ def text_to_pdf(
                     y = height - margin
                 c.drawString(x, y, line)
                 y -= line_height
-        # saut de paragraphe
         y -= line_height
         if y < margin + line_height:
             c.showPage()
@@ -54,6 +54,7 @@ def text_to_pdf(
             y = height - margin
 
     c.save()
+
 
 def main():
     p = argparse.ArgumentParser(
@@ -72,17 +73,21 @@ def main():
                    help="Nombre max de caractères par ligne")
     args = p.parse_args()
 
-    size = LETTER if args.pagesize == "LETTER" else A4
+    try:
+        size = LETTER if args.pagesize == "LETTER" else A4
+        text_to_pdf(
+            input_path=args.input,
+            output_path=args.output,
+            pagesize=size,
+            margin=args.margin,
+            line_height=14,
+            max_chars=args.linewidth,
+        )
+        print(f"[OK] PDF généré (extractible) : {args.output}")
+    except Exception as e:
+        print(f"[ERREUR] génération échouée : {e}", file=sys.stderr)
+        sys.exit(2)
 
-    text_to_pdf(
-        input_path=args.input,
-        output_path=args.output,
-        pagesize=size,
-        margin=args.margin,
-        line_height=14,
-        max_chars=args.linewidth,
-    )
-    print(f"[OK] PDF généré (extractible) : {args.output}")
 
 if __name__ == "__main__":
     main()

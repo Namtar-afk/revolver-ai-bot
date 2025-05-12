@@ -3,9 +3,14 @@
   "title": "Brief",
   "type": "object",
   "properties": {
-    "problem": { "type": "string", "minLength": 5 },
-    "objectives": { "type": "string", "minLength": 5 },
-    "KPIs": { "type": "string", "minLength": 5 }
+    "title": { "type": "string", "minLength": 3 },
+    "objectives": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 3 },
+      "minItems": 1
+    },
+    "internal_reformulation": { "type": "string", "minLength": 5 },
+    "summary": { "type": "string", "minLength": 5 }
   },
-  "required": ["problem", "objectives", "KPIs"]
+  "required": ["title", "objectives", "internal_reformulation", "summary"]
 }

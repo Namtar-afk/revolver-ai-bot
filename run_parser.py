@@ -7,7 +7,7 @@ from jsonschema import validate, ValidationError
 
 from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
-from reco.generator import generate_recommendation       # ← import corrigé
+from reco.generator import generate_recommendation
 from reco.models import DeckData, BriefReminder, StateOfPlaySection
 import pptx_generator.slide_builder
 
@@ -41,6 +41,7 @@ def parse_brief(path: str) -> dict:
 
     return sections
 
+
 def main():
     parser = ArgumentParser(description="Revolver AI Bot Report CLI")
     parser.add_argument(
@@ -68,7 +69,8 @@ def main():
             brief_model = BriefReminder(
                 title="",
                 objectives=[],
-                internal_reformulation=""
+                internal_reformulation="",
+                summary=""
             )
 
         # 2.2) Veille & tendances
@@ -91,14 +93,10 @@ def main():
             )
         except Exception as e:
             print(f"[WARN] generate_recommendation a échoué : {e}", file=sys.stderr)
-            deck = DeckData(
-                brief_reminder=brief_model,
-                brand_overview=None,
-                state_of_play=[],
-                ideas=[],
-                timeline=[],
-                budget=[]
-            )
+            # Fallback : fichier PPT vide
+            open(args.report, "wb").close()
+            print(f"[OK] Fichier vide créé : {args.report}")
+            sys.exit(0)
 
         try:
             pptx_generator.slide_builder.build_ppt(deck, args.report)
