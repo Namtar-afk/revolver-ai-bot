@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "revolver_ai_bot"
+version = "0.1.0"
+description = "Revolver AI Bot"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Romeo Cavazza", email = "romeo@example.com" }
+]
+dependencies = [
+  "pdfplumber>=0.11.6",
+  "feedparser>=6.0.11",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "bot*",
+  "parser*",
+  "pptx_generator*",
+  "reco*",
+  "utils*",
+]
+exclude = [
+  "tests*",
+  "schema*",
+  "scripts*",
+  "prompts*",
+]
