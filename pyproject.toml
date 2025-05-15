@@ -31,3 +31,9 @@ include = [
   "reco*",
   "utils*"
 ]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:'count' is passed as positional argument"
+]
+
