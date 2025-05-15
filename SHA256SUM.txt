@@ -1,1 +1,1 @@
-ea2b007cbffab64dd22b574cb80e58e3f2e2dd434bc34a7c8b35274d2a8375d4  revolver-ai-bot-v0.2.3.tar.gz
+50b14bd1a08f6f803030cd20dbadfa0058881f8fb60e6bbb0a6d42adff521db0  revolver-ai-bot-v0.2.4.tar.gz

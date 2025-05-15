@@ -26,3 +26,6 @@ run:  ## Lance le parseur CLI
 
 docker:  ## Lance le projet avec Docker Compose
 	docker compose -f docker-compose.dev.yml up --build
+
+publish-ghcr:
+	GHCR_PAT=$(GHCR_PAT) ./scripts/publish_ghcr.sh $(VERSION)
