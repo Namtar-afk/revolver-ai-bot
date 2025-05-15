@@ -1,0 +1,15 @@
+# Environnements virtuels
+.venv/
+__pycache__/
+*.pyc
+
+# IDE / OS / Logs
+.vscode/
+.DS_Store
+.env
+*.log
+
+# Fichiers liés à la construction
+*.egg-info/
+dist/
+build/
