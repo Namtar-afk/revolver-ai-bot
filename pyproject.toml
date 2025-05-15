@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "revolver_ai_bot"
+version = "0.1.0"
+description = "Revolver AI Bot"
+readme = "README.md"
+requires-python = ">=3.10"
+
+authors = [
+  { name = "Romeo Cavazza", email = "romeo@example.com" }
+]
+
+dependencies = [
+  "openai>=0.27.0",
+  "python-dotenv>=1.0.0",
+  "python-pptx>=0.6.21",
+  "pdfplumber>=0.11.6",
+  "pydantic>=2.11.4",
+  "jsonschema>=4.23.0",
+  "requests>=2.32.3"
+]
+
+[tool.setuptools.packages.find]
+include = [
+  "bot*",
+  "parser*",
+  "pptx_generator*",
+  "reco*",
+  "utils*"
+]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:'count' is passed as positional argument"
+]
+

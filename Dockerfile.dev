@@ -1,0 +1,29 @@
+# Base Python image
+FROM python:3.12-slim
+
+# Empêche l’écriture des .pyc
+ENV PYTHONDONTWRITEBYTECODE=1
+# Affiche les logs en direct
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Install basic OS dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry or pip requirements (choisir l’un)
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Install the app in editable mode
+COPY . .
+RUN pip install -e .
+
+# Pour hot reload avec entrées CLI, notebooks, tests
+CMD ["tail", "-f", "/dev/null"]

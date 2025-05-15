@@ -1,15 +1,35 @@
-# Environnements virtuels
+# ────────────────────────────
+# Environnements virtuels / caches Python
 .venv/
+venv/
 __pycache__/
 *.pyc
 
-# IDE / OS / Logs
-.vscode/
-.DS_Store
-.env
-*.log
-
-# Fichiers liés à la construction
+# Build & packaging
 *.egg-info/
 dist/
 build/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.env
+*.log
+*.swp
+
+# Données, samples & artefacts métier
+data/
+inbox/
+data/veille.csv
+report.pptx
+brief*.pdf
+mini*.pdf
+tests/fixtures/
+tests/samples/*.pdf
+tests/samples/*.txt
+tests/tests/
+.ipynb_checkpoints/
+

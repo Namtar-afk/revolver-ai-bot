@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  revolver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    command: ["python", "run_parser.py", "--help"]
+    ports:
+      - "8080:8080"
