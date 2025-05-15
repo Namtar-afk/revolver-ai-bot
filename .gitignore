@@ -28,8 +28,6 @@ report.pptx
 brief*.pdf
 mini*.pdf
 tests/fixtures/
-tests/samples/*.pdf
 tests/samples/*.txt
 tests/tests/
 .ipynb_checkpoints/
-
