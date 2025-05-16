@@ -1,0 +1,8 @@
+watch:
+  slack-server:
+    paths:
+      - ./api
+      - ./bot
+    extensions:
+      - .py
+

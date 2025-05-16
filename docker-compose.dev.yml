@@ -1,14 +1,29 @@
-version: "3.9"
-
 services:
-  revolver:
+  slack-server:
     build:
       context: .
-      dockerfile: Dockerfile
-    volumes:
-      - .:/app
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    command: ["python", "run_parser.py", "--help"]
+      dockerfile: Dockerfile.dev
     ports:
-      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - ./api:/app/api
+      - ./bot:/app/bot
+      - ./requirements.txt:/app/requirements.txt
+    env_file:
+      - .env
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+  slack-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - slack-server
+    command: python bot/slack_handler.py
+    env_file:
+      - .env
+    volumes:
+      - ./bot:/app/bot
+      - ./api:/app/api
+      - ./tests/samples:/app/tests/samples
+      - ./requirements.txt:/app/requirements.txt

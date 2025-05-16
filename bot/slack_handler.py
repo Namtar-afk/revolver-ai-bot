@@ -2,175 +2,161 @@
 import os
 import sys
 import tempfile
-import requests
 import subprocess
+import argparse
+import requests
+import time
 
-from bot.orchestrator import process_brief, run_veille, run_analyse
-from utils.logger import logger
-
-# Slack client global
 from slack_sdk import WebClient
-client = WebClient(token=os.getenv("SLACK_TOKEN", ""))
+from bot.utils.logger import logger
+from bot.orchestrator import process_brief, run_veille, run_analyse
 
-# Dummy Slack app decorator (pour simulateur CLI)
-class _DummyApp:
-    def command(self, *args, **kwargs):
-        def decorator(f): return f
-        return decorator
-    def event(self, *args, **kwargs):
-        def decorator(f): return f
-        return decorator
+time.sleep(0.5)
 
-slack_app = _DummyApp()
+client = WebClient(token=os.getenv("SLACK_BOT_TOKEN", ""))
 
+# ------------------------------------------------------------------------------
+# Fonctions CLI exportables (utilisables aussi dans les tests)
+# ------------------------------------------------------------------------------
 
-def simulate_slack_upload():
-    """Simulateur CLI : parse un PDF de test."""
-    sample = "tests/samples/brief_sample.pdf"
-    if not os.path.exists(sample):
-        logger.error(f"Fichier introuvable : {sample}")
-        return
-    logger.info("[Slack][Sim] Lecture du sample PDF…")
-    sections = process_brief(sample)
-    print(f"\n=== Sections extraites (simulateur) ===\n{sections}\n")
-
-
-def handle_veille_command():
-    """Trigger veille via CLI ou Slack."""
+def handle_veille_command() -> str:
     output = os.getenv("VEILLE_OUTPUT_PATH", "data/veille.csv")
-    items = run_veille(output)
-    msg = f"✅ Veille lancée, {len(items)} items sauvegardés dans `{output}`."
-    logger.info(msg)
-    return msg
+    try:
+        items = run_veille(output)
+        logger.info(f"[CLI] Veille : {len(items)} items enregistrés dans {output}")
+        return f"✅ {len(items)} items sauvegardés dans `{output}`."
+    except Exception as e:
+        logger.error(f"[CLI] Échec de la veille : {e}")
+        return f"❌ Erreur veille : {e}"
 
-
-def handle_analyse_command():
-    """Trigger analyse via CLI ou Slack."""
+def handle_analyse_command() -> str:
     try:
         run_analyse()
-        return "✅ Analyse terminée, résultats envoyés."
+        return "✅ Analyse terminée."
     except Exception as e:
-        logger.error(f"Erreur analyse Slack : {e}")
-        return f"❌ L'analyse a échoué : {e}"
+        logger.error(f"[CLI] Échec de l’analyse : {e}")
+        return f"❌ Erreur analyse : {e}"
 
+def simulate_upload() -> None:
+    pdf_path = "tests/samples/brief_sample.pdf"
+    if not os.path.exists(pdf_path):
+        logger.error(f"[CLI] Fichier introuvable : {pdf_path}")
+        return
+    logger.info("[CLI] Simulation d'un upload PDF Slack...")
+    sections = process_brief(pdf_path)
+    print("\n=== Résultat de l’analyse CLI ===\n")
+    print(sections)
 
-def handle_report_command(ack, respond, command):
-    """Commande /report Slack : génère et upload le PPTX."""
-    # ack immédiatement
+# ------------------------------------------------------------------------------
+# Slack Handlers
+# ------------------------------------------------------------------------------
+
+def handle_report_command(ack, respond, command) -> str:
     ack()
-
-    # récupère l’argument (nom de fichier) éventuel
-    text = getattr(command, "text", "") or ""
-    output = text.strip() or "report.pptx"
-
+    output = (getattr(command, "text", "") or "report.pptx").strip()
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    script = os.path.join(repo_root, "run_parser.py")
+    script_path = os.path.join(repo_root, "run_parser.py")
     output_path = os.path.abspath(output)
 
-    logger.info(f"[Slack] Génération du rapport via {script} → {output_path}")
+    logger.info(f"[Slack] Génération rapport : {script_path} → {output_path}")
     try:
-        subprocess.run(
-            [sys.executable, script, "--report", output_path],
-            check=True,
-        )
+        subprocess.run([sys.executable, script_path, "--report", output_path], check=True)
     except subprocess.CalledProcessError as e:
-        logger.warning(f"[Slack] subprocess report failed (code {e.returncode}), creating empty file")
-        with open(output_path, "wb"): pass
+        logger.warning(f"[Slack] Erreur subprocess (code {e.returncode}) → fichier vide créé")
+        with open(output_path, "wb"):
+            pass
 
-    # upload du fichier sur Slack (avec filename)
     try:
         client.files_upload(
-            channels=command.channel_id if hasattr(command, 'channel_id') else '#general',
+            channels=command.channel_id if hasattr(command, "channel_id") else "#general",
             file=output_path,
             filename=os.path.basename(output_path)
         )
-        # envoi d'un message de confirmation
         client.chat_postMessage(
-            channel=command.channel_id if hasattr(command, 'channel_id') else '#general',
+            channel=command.channel_id if hasattr(command, "channel_id") else "#general",
             text=f"📊 Rapport généré : {output_path}"
         )
     except Exception as e:
-        logger.error(f"Erreur upload sur Slack : {e}")
+        logger.error(f"[Slack] Upload échoué : {e}")
+        return f"❌ Échec de l’upload : {e}"
 
     return f"📊 Rapport généré : {output_path}"
 
+# ------------------------------------------------------------------------------
+# Slack Socket Mode
+# ------------------------------------------------------------------------------
 
-def real_slack_listener():
-    """Listener Slack Bolt (SocketMode)."""
+def start_slack_listener():
     try:
         from slack_bolt import App
         from slack_bolt.adapter.socket_mode import SocketModeHandler
-        from slack_bolt.error import BoltError
     except ImportError:
-        logger.error("Slack Bolt non installé — simulateur CLI uniquement")
-        simulate_slack_upload()
+        logger.error("[Slack] Slack Bolt non installé → fallback CLI")
+        simulate_upload()
         sys.exit(0)
 
-    token = os.getenv("SLACK_BOT_TOKEN")
     app_token = os.getenv("SLACK_APP_TOKEN")
-    if not token or not app_token:
-        logger.warning("Tokens Slack manquants — simulateur CLI")
-        simulate_slack_upload()
+    bot_token = os.getenv("SLACK_BOT_TOKEN")
+
+    if not app_token or not bot_token:
+        logger.warning("[Slack] Tokens manquants → fallback CLI")
+        simulate_upload()
         sys.exit(0)
 
-    try:
-        app = App(token=token)
-    except BoltError:
-        logger.warning("Token Slack invalide — simulateur CLI")
-        simulate_slack_upload()
-        sys.exit(0)
+    app = App(token=bot_token)
 
     @app.command("/report")
-    def _report(ack, respond, command):
+    def report_handler(ack, respond, command):
         respond(handle_report_command(ack, respond, command))
 
     @app.event("message")
-    def message_listener(body, say, client_inst):
-        text = body.get("event", {}).get("text", "").strip().lower()
+    def message_handler(body, say):
+        event = body.get("event", {})
+        text = event.get("text", "").strip().lower()
+
         if text == "!veille":
             say(handle_veille_command())
-            return
-        if text == "!analyse":
-            say("🧠 Lancement de l’analyse…")
+        elif text == "!analyse":
+            say("🧠 Lancement de l’analyse...")
             say(handle_analyse_command())
-            return
+        else:
+            for f in event.get("files", []):
+                if f.get("filetype") != "pdf":
+                    continue
+                try:
+                    url = f.get("url_private_download")
+                    headers = {"Authorization": f"Bearer {bot_token}"}
+                    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                        tmp.write(requests.get(url, headers=headers).content)
+                        pdf_path = tmp.name
+                    sections = process_brief(pdf_path)
+                    say(f"✅ Brief analysé :\n```{sections}```")
+                except Exception as e:
+                    logger.error(f"[Slack] Erreur PDF : {e}")
+                    say(f"❌ Erreur analyse PDF : {e}")
 
-        for f in body.get("event", {}).get("files", []):
-            if f.get("filetype") != "pdf":
-                continue
-            info = client.files_info(file=f["id"]).get('file', {})
-            url = info.get('url_private_download')
-            headers = {"Authorization": f"Bearer {token}"}
-            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-                tmp.write(requests.get(url, headers=headers).content)
-                path = tmp.name
-            try:
-                sections = process_brief(path)
-                say(f"✅ Brief analysé :\n```{sections}```")
-            except Exception as e:
-                logger.error(f"Erreur traitement PDF : {e}")
-                say(f"❌ Échec du traitement : {e}")
+    logger.info("[Slack] SocketModeHandler démarré.")
+    SocketModeHandler(app, app_token).start()
 
-    handler = SocketModeHandler(app, app_token)
-    handler.start()
+# ------------------------------------------------------------------------------
+# Mode CLI
+# ------------------------------------------------------------------------------
 
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Slack handler CLI / listener")
-    parser.add_argument("--simulate", action="store_true",
-                        help="Lancer le simulateur CLI (parse sample local)")
-    parser.add_argument("--veille", action="store_true",
-                        help="Déclencher la veille média")
-    parser.add_argument("--analyse", action="store_true",
-                        help="Déclencher l'analyse des items de veille")
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--simulate", action="store_true")
+    parser.add_argument("--veille", action="store_true")
+    parser.add_argument("--analyse", action="store_true")
     args = parser.parse_args()
 
     if args.simulate:
-        simulate_slack_upload()
+        simulate_upload()
     elif args.veille:
         print(handle_veille_command())
     elif args.analyse:
         print(handle_analyse_command())
     else:
-        real_slack_listener()
+        start_slack_listener()
+
+if __name__ == "__main__":
+    main()

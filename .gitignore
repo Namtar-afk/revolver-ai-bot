@@ -26,6 +26,7 @@ ehthumbs.db
 # Variables d'environnement
 .env
 .python-version
+secrets/
 
 # ───────────────────────────────
 # Données, artefacts, fichiers métiers
@@ -48,8 +49,7 @@ tests/test_fetch_rss_empty*
 test_reco_generator_4.py
 
 # ───────────────────────────────
-# Fichiers générés ou dupliqués (n versions)
+# Fichiers générés ou dupliqués
 * 3.*
 * 4.*
 * 5.*
-

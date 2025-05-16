@@ -1,57 +1,34 @@
-# tests/test_slack_report.py
+import os
+import tempfile
+import shutil
 import pytest
-from types import SimpleNamespace
+from unittest.mock import patch
+
 from bot.slack_handler import handle_report_command
 
-class DummyClient:
-    def __init__(self):
-        self.uploaded = False
-        self.messages = []
 
-    def files_upload(self, **kwargs):
-        # Simule l’upload et vérifie qu’on génère bien un .pptx
-        assert kwargs.get("filename", "").endswith(".pptx")
-        self.uploaded = True
-        return {"ok": True}
+class DummyCommand:
+    def __init__(self, text="", channel_id="#test"):
+        self.text = text
+        self.channel_id = channel_id
 
-    def chat_postMessage(self, **kwargs):
-        # Slack Bolt respond() utilise client.chat_postMessage en interne
-        text = kwargs.get("text", "")
-        self.messages.append(text)
 
-@pytest.fixture(autouse=True)
-def patch_slack(monkeypatch):
-    dummy = DummyClient()
-    # Patch du client utilisé dans bot/slack_handler.py
-    monkeypatch.setattr("bot.slack_handler.client.files_upload", dummy.files_upload)
-    monkeypatch.setattr("bot.slack_handler.client.chat_postMessage", dummy.chat_postMessage)
-    return dummy
+def test_handle_report_command_creates_file(tmp_path):
+    # Crée un chemin temporaire pour le fichier simulé
+    output_path = tmp_path / "rapport_test.pptx"
 
-def test_slack_report(patch_slack):
-    # Préparez un ack() qui note qu'il a été appelé
-    ack_called = {"ok": False}
-    def ack(response=None):
-        ack_called["ok"] = True
+    # Simule le comportement du sous-processus de génération
+    with patch("subprocess.run") as mock_run, \
+         patch("bot.slack_handler.client.files_upload") as mock_upload, \
+         patch("bot.slack_handler.client.chat_postMessage") as mock_msg:
 
-    # prepare a dummy respond()—nous n’en avons pas besoin ici
-    def respond(msg):
-        # handle_report_command renvoie un texte via return, pas via respond()
-        pass
+        mock_run.return_value.returncode = 0
 
-    # Simulez la commande Slash /report sans arguments
-    command = SimpleNamespace(text="", channel_id="C123", user_id="U123")
+        command = DummyCommand(text=str(output_path), channel_id="#test")
+        msg = handle_report_command(ack=lambda: None, respond=lambda m: None, command=command)
 
-    # Exécutez
-    result = handle_report_command(ack, respond, command)
-
-    # La commande doit avoir été ackée
-    assert ack_called["ok"], "La commande Slack n’a pas été ackée"
-
-    # Un .pptx doit avoir été uploadé au moins une fois
-    assert patch_slack.uploaded, "Le PPT n’a pas été uploadé sur Slack"
-
-    # Et un message de confirmation doit avoir été renvoyé (via client.chat_postMessage)
-    assert any(
-        "rapport généré" in msg.lower() or "report" in msg.lower()
-        for msg in patch_slack.messages
-    ), "Pas de message de confirmation dans chat_postMessage"
+        # Vérifie que le fichier est mentionné dans le message de retour
+        assert output_path.name in msg
+        mock_run.assert_called_once()
+        mock_upload.assert_called_once()
+        mock_msg.assert_called_once()

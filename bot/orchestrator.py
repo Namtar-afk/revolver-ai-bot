@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import csv
+import pdfplumber
 from argparse import ArgumentParser
 from jsonschema import validate, ValidationError
 
@@ -119,3 +120,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def extract_text_from_pdf(file_path):
+    try:
+        with pdfplumber.open(file_path) as pdf:
+            return "\n".join([page.extract_text() or "" for page in pdf.pages])
+    except Exception as e:
+        logger.error(f"[ERROR] Failed to extract PDF text: {e}")
+        return ""

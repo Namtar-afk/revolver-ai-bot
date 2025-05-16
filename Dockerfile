@@ -1,22 +1,39 @@
 # Utilise une image Python 3.12 légère
 FROM python:3.12-slim
 
+# Empêche la génération de fichiers .pyc
+ENV PYTHONDONTWRITEBYTECODE=1
+# Affiche les logs Python en temps réel
+ENV PYTHONUNBUFFERED=1
+
 # Définit le répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Copie des fichiers requirements en premier pour profiter du cache Docker
+# Installation des dépendances système nécessaires (poppler-utils pour pdf, build-essential, curl, git)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copie des fichiers requirements en premier pour optimiser le cache Docker
 COPY requirements.txt .
 COPY requirements-dev.txt .
 
-# Installation des dépendances
-RUN pip install --no-cache-dir -r requirements.txt && \
+# Installation des dépendances Python
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements-dev.txt
 
-# Copie du reste du code source dans le conteneur
+# Copie du code source dans le conteneur
 COPY . .
 
-# Port d’exposition (modifiable selon usage serveur)
-EXPOSE 8080
+# Installation en mode editable pour faciliter le dev
+RUN pip install -e .
 
-# Commande par défaut (modifiable si API ou Streamlit par exemple)
-CMD ["python", "run_parser.py", "--help"]
+# Expose le port 8000 (celui utilisé par uvicorn)
+EXPOSE 8000
+
+# Commande par défaut pour lancer l'API FastAPI avec hot reload
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
