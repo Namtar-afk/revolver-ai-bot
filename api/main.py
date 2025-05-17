@@ -1,42 +1,61 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
-from parser.pdf_parser import extract_text_from_pdf
-from parser.nlp_utils import extract_brief_sections
+from fastapi import FastAPI, Request, UploadFile, File, HTTPException
 import os
+import tempfile
+import json
+from bot.orchestrator import process_brief
 
-app = FastAPI(title="Revolver AI Bot - Brief Extractor", version="0.2.0")
-
+app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"status": "Slack server is running."}
-
+    return {"message": "Revolver AI Bot API is running"}
 
 @app.post("/extract-brief")
 async def extract_brief(file: UploadFile = File(...)):
+    """
+    Upload a PDF brief and return extracted sections as JSON.
+    """
+    # Validate file type
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Invalid file type")
+    # Save uploaded file to a temporary location
+    suffix = os.path.splitext(file.filename)[1] if file.filename else ".pdf"
     try:
-        # Crée un chemin temporaire
-        temp_path = "temp_brief_api.pdf"
-
-        # Sauvegarde du fichier reçu
-        contents = await file.read()
-        with open(temp_path, "wb") as f:
-            f.write(contents)
-
-        # Extraction du texte
-        text = extract_text_from_pdf(temp_path)
-        if not text:
-            return JSONResponse(status_code=400, content={"error": "PDF illisible"})
-
-        # Traitement NLP
-        data = extract_brief_sections(text)
-        return JSONResponse(content=data)
-
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            content = await file.read()
+            tmp.write(content)
+            tmp_path = tmp.name
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
+        raise HTTPException(status_code=400, detail=str(e))
+    # Process the brief
+    try:
+        sections = process_brief(tmp_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
-        # Nettoyage du fichier temporaire
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+    return sections
 
+@app.post("/slack/events")
+async def slack_events(request: Request):
+    payload = await request.json()
+    # Respond to Slack URL verification challenge
+    if payload.get("type") == "url_verification":
+        return {"challenge": payload.get("challenge")}
+    # Event callback
+    if payload.get("type") == "event_callback":
+        event = payload.get("event", {})
+        # Handle message events
+        if event.get("type") == "message":
+            handle_event(event)
+        # Handle other event types if needed
+    # Always return OK
+    return {}
+
+def handle_event(event: dict) -> None:
+    """
+    Handle a Slack event. This function is intended to be stubbed in tests.
+    """
+    # Implementation stubbed in tests
+    pass

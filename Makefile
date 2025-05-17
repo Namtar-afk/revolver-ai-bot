@@ -75,4 +75,3 @@ clean-pdf:  ## Nettoie les fichiers LaTeX temporaires
 # -------------------------------
 clean: clean-pdf  ## Nettoie tous les fichiers inutiles
 	@rm -rf __pycache__ .pytest_cache .mypy_cache *.pyc .coverage
-

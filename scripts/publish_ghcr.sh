@@ -1,19 +1,21 @@
-# publish_ghcr.sh
-
 #!/bin/bash
+
 set -euo pipefail
 
 USER="namtar-afk"
 REPO="revolver-ai-bot"
 VERSION=${1:-"v0.2.4"}
-
 IMAGE_NAME="ghcr.io/${USER}/${REPO}:${VERSION}"
-ARCHIVE_NAME="${REPO}-${VERSION}.tar.gz"
 
 if [[ -z "${GHCR_PAT:-}" ]]; then
-  read -s -p "🔑 Enter your GHCR_PAT: " GHCR_PAT
-  echo
+  echo "❌ GHCR_PAT non défini. Abandon."
+  exit 1
 fi
 
-echo "🔐 Logging in to GHCR as $USER..."
+echo "🔐 Connexion à GHCR en tant que $USER..."
 echo "$GHCR_PAT" | docker login ghcr.io -u "$USER" --password-stdin
+
+echo "📦 Pousser l’image Docker : $IMAGE_NAME"
+docker push "$IMAGE_NAME"
+
+echo "✅ Publication terminée."

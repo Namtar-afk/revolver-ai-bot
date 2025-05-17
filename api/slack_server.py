@@ -1,63 +1,80 @@
-# api/slack_server.py
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+import os
 import hmac
 import hashlib
-import os
-from fastapi import FastAPI
-app = FastAPI()
+import json
+from typing import Any, Optional
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from bot.slack_handler import handle_slack_event
 
-@app.get("/")
-def healthcheck():
-    return {"status": "Slack server is running."}
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
+SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET", "")
+app = FastAPI(title="Revolver AI Slack Server")
 
-SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET", "your-signing-secret")
-
+# ------------------------------------------------------------------------------
+# Modèles Pydantic
+# ------------------------------------------------------------------------------
 class SlackEvent(BaseModel):
+    """
+    Modèle du payload Slack.
+    """
     type: str
-    challenge: str = None
-    event: dict = None
+    challenge: Optional[str] = Field(None, description="Challenge pour la vérification d’URL")
+    event: Optional[dict[str, Any]] = Field(None, description="Détails de l’événement Slack")
 
-
-def verify_signature(request: Request, body: bytes):
+# ------------------------------------------------------------------------------
+# Sécurité
+# ------------------------------------------------------------------------------
+def verify_signature(request: Request, body: bytes) -> None:
+    """
+    Vérifie la signature Slack pour garantir l’intégrité de la requête.
+    """
     timestamp = request.headers.get("X-Slack-Request-Timestamp")
-    signature = request.headers.get("X-Slack-Signature")
-    
-    if not timestamp or not signature:
-        raise HTTPException(status_code=400, detail="Missing Slack headers")
-
-    sig_basestring = f"v0:{timestamp}:{body.decode()}"
-    my_signature = "v0=" + hmac.new(
+    slack_signature = request.headers.get("X-Slack-Signature")
+    if not timestamp or not slack_signature:
+        raise HTTPException(400, "Missing Slack verification headers")
+    # Construit la base string et calcule le HMAC SHA256
+    base = f"v0:{timestamp}:{body.decode('utf-8')}"
+    computed_signature = "v0=" + hmac.new(
         SLACK_SIGNING_SECRET.encode(),
-        sig_basestring.encode(),
+        base.encode(),
         hashlib.sha256
     ).hexdigest()
+    if not hmac.compare_digest(computed_signature, slack_signature):
+        raise HTTPException(403, "Invalid Slack signature")
 
-    if not hmac.compare_digest(my_signature, signature):
-        raise HTTPException(status_code=403, detail="Invalid request signature")
-
-
+# ------------------------------------------------------------------------------
+# Routes
+# ------------------------------------------------------------------------------
 @app.post("/slack/events")
 async def slack_events(request: Request):
-    raw_body = await request.body()
-    verify_signature(request, raw_body)
-
+    """
+    Webhook d’événements Slack :
+    - Vérification d’URL (challenge)
+    - Dispatch des événements (appels à handle_slack_event)
+    """
+    body = await request.body()
+    verify_signature(request, body)
     payload = await request.json()
-    slack_event = SlackEvent(**payload)
-
-    # Ping init
-    if slack_event.type == "url_verification":
-        return JSONResponse(content={"challenge": slack_event.challenge})
-
-    # Handle events
-    if slack_event.event:
-        await handle_slack_event(slack_event.event)
-        return JSONResponse(content={"ok": True})
-
-    return JSONResponse(content={"ok": True})
-
+    evt = SlackEvent(**payload)
+    # Réponse au challenge de vérification d’URL
+    if evt.type == "url_verification" and evt.challenge:
+        return JSONResponse({"challenge": evt.challenge})
+    # Dispatch de l’événement
+    if evt.event:
+        try:
+            await handle_slack_event(evt.event)
+        except Exception as e:
+            raise HTTPException(500, f"Event handling failed: {e}")
+        return JSONResponse({"ok": True})
+    return JSONResponse({"ok": True})
 
 @app.get("/")
-def root():
+def root() -> dict[str, str]:
+    """
+    Point de contrôle basique pour vérifier le statut du serveur.
+    """
     return {"status": "Slack server is running."}

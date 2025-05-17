@@ -6,24 +6,26 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./api:/app/api
-      - ./bot:/app/bot
-      - ./requirements.txt:/app/requirements.txt
+      - .:/app            # Monte tout le répo
     env_file:
       - .env
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
 
-  slack-bot:
+  slack-bot: &slack-bot
     build:
       context: .
       dockerfile: Dockerfile.dev
     depends_on:
       - slack-server
-    command: python bot/slack_handler.py
     env_file:
       - .env
     volumes:
-      - ./bot:/app/bot
-      - ./api:/app/api
-      - ./tests/samples:/app/tests/samples
-      - ./requirements.txt:/app/requirements.txt
+      - .:/app            # Idem, pour avoir accès au code et aux tests
+    command: python bot/slack_handler.py
+
+  slack-cli:
+    <<: *slack-bot       # Hérite de build, volumes, env_file, etc.
+    entrypoint: ["python", "bot/slack_handler.py"]
+    command: ["--simulate"]          # Lance la simulation CLI
+    # Pour lancer les tests, utiliser:
+    # command: ["pytest", "-q"]

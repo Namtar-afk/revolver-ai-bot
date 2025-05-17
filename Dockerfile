@@ -23,6 +23,8 @@ COPY requirements-dev.txt .
 
 # Installation des dépendances Python
 RUN pip install --upgrade pip && \
+    pip uninstall -y -r requirements.txt && \
+    pip uninstall -y -r requirements-dev.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir -r requirements-dev.txt
 
