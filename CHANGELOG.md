@@ -1,19 +1,27 @@
-## [v0.2.4] - 2025-05-15
+# Changelog
 
-### Added
-- Fixturage PDF complet (`brief_simple.pdf`, `brief_multi.pdf`)
-- Script `publish_ghcr.sh` pour publication automatisée sur GHCR
-- Archive `.tar.gz` + hash `SHA256SUM.txt`
+Toutes les modifications notables de ce projet seront documentées dans ce fichier.
 
-### Fixed
-- Tests restaurés à 100% verts
-- Correction `.gitignore` bloquant les fichiers PDF
+## [Unreleased]
 
-### Clean
-- Suppression de tous les fichiers `* 2.*` (doublons de dev)
-- Nettoyage `.pyc`, `__pycache__`, tests suspendus
+### Ajouté
+- Simulation CLI Slack (`--simulate`), commandes `!veille` et `!analyse` via Docker `slack-cli`.
+- Endpoint FastAPI pour upload PDF dans `api/main.py`.
 
-### Docker
-- Image Docker stable `v0.2.4` buildée et testée localement
-- Push réussi sur GHCR : `ghcr.io/namtar-afk/revolver-ai-bot:v0.2.4`
+### Corrigé
+- Erreurs `python-multipart` manquant dans l’API.
+- Chemin des modules utils/slack_handler ajusté.
+
+---
+
+## [v0.1.0] - 2025-05-17
+
+### Ajouté
+- Première version stable du parseur de brief (`run_parser.py`).
+- Intégration de `pdfplumber` pour l’extraction de texte.
+- Handlers Slack + simulation CLI + tests pytest.
+
+### Changé
+- Passage à FastAPI 0.115 et python-multipart pour l’upload de PDF.
+- Standardisation des logs avec `utils/logger`.
 

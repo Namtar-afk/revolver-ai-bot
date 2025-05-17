@@ -1,109 +1,109 @@
-![Tests](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml/badge.svg)
+# 🔧 Revolver AI Bot
+
+[![PyPI](https://img.shields.io/pypi/v/revolver-ai-bot)](https://pypi.org/project/revolver-ai-bot/)
+[![Tests](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml/badge.svg)](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/romeocavazza/revolver-ai-bot/branch/main/graph/badge.svg)](https://codecov.io/gh/romeocavazza/revolver-ai-bot)
-
-# 🤖 Revolver AI Bot
-
-Agent IA full-stack pour ingestion de briefs, veille stratégique, analyse automatique et génération de livrables professionnels (PDF, PPTX, API). Compatible Slack, CLI et FastAPI.
 
 ---
 
-## 🚀 Installation rapide
+## 🤖 Présentation
 
-### 1. Cloner le dépôt
+Revolver AI Bot est un agent IA full-stack conçu pour :
+
+* **Parser** des briefs PDF et en extraire des JSON structurés
+* **Automatiser** la veille stratégique (RSS, Google, TikTok…)
+* **Analyser** les données via LLM (insights, KPIs, tendances)
+* **Générer** des livrables professionnels (PDF, PPTX)
+* **Fournir** une API REST (FastAPI) pour intégration
+* **Intégrer** un mode Slack bot interactif
+
+## 🚀 Installation
+
+### 1. Via PyPI
 
 ```bash
-git clone https://github.com/Namtar-afk/revolver-ai-bot.git
-cd revolver-ai-bot
+pip install revolver-ai-bot
 ```
 
-### 2. Environnement virtuel
+### 2. En local (développement)
 
 ```bash
+git clone https://github.com/romeocavazza/revolver-ai-bot.git
+cd revolver-ai-bot
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-### 3. Installer les dépendances
-
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Clés API et config
+## ⚙️ Configuration
+
+Copiez le fichier de configuration exemple et ajustez vos clés :
 
 ```bash
 cp config.example.py config.py
-# Puis éditez `config.py` avec vos clés (OpenAI, Slack, Google, SerpAPI...)
+# Éditez config.py (OpenAI, Slack, SerpAPI…)
 ```
 
 ## 🧠 Fonctionnalités principales
 
-- ✨ Parsing intelligent de briefs PDF → JSON valide
-- 📊 Analyse automatisée via LLM (insights, KPIs, hypothèses…)
-- 📈 Agrégation et clustering de veille (RSS, Google, TikTok…)
-- 🗞️ Génération de slides .pptx (Deck complet)
-- 🧪 API REST (FastAPI) pour intégration facile
-- 💬 Mode Slack bot interactif
+* **Parsing intelligent** de briefs PDF → JSON valide
+* **Analyse automatique** (résumé, reformulation, KPIs)
+* **Veille agrégée** et clustering d’actualités
+* **Génération de slides** (.pptx)
+* **API REST** (FastAPI) et docs Swagger `/docs`
+* **Slack bot** multi-commandes
 
-## 🗂 Structure du projet
+## 📂 Structure du projet
 
-```
+```plain
 revolver-ai-bot/
-├── bot/                ← Slack handler + veille + analyse
-├── parser/             ← Extraction et NLP des briefs PDF
-├── pptx_generator/     ← Génération de PowerPoint
-├── prompts/            ← Templates markdown pour GPT
-├── reco/               ← Recommandation stratégique (LLM + logique)
-├── schema/             ← JSON Schema pour validation
-├── api/                ← FastAPI server (REST endpoints)
-├── tests/              ← Unitaires, intégration et snapshots
-├── run_parser.py       ← CLI : PDF → JSON/PPTX
-├── run_monitor.py      ← CLI : veille
-└── README.md
+├── bot/                # Gestion Slack, veille, analyse
+├── parser/             # Extraction de texte et NLP
+├── pptx_generator/     # Génération PowerPoint
+├── prompts/            # Templates pour LLM
+├── reco/               # Recommandations stratégiques
+├── schema/             # JSON Schema de validation
+├── api/                # Serveur FastAPI
+├── tests/              # Tests unitaires et d’intégration
+├── run_parser.py       # CLI : PDF → JSON/PPTX
+└── run_monitor.py      # CLI : veille média
 ```
 
-## 🧪 Tests unitaires
+## 🧪 Tests
 
 ```bash
 export PYTHONPATH=$(pwd)
 pytest -v
 ```
 
-Couverture : extraction, parsing, génération, intégration, Slack.
+## 🖥️ Utilisation CLI
 
-## 🖥 Utilisation CLI
+* **Parser un brief PDF**
 
-### 1. Parser un brief
+  ```bash
+  python run_parser.py --brief path/to/brief.pdf
+  ```
 
-```bash
-python run_parser.py
-```
+* **Générer un PPTX**
 
-### 2. Générer un rapport complet (.pptx)
+  ```bash
+  python run_parser.py --report output.pptx
+  ```
 
-```bash
-python run_parser.py --report output.pptx
-```
+* **Lancer la veille média**
 
-### 3. Lancer la veille
-
-```bash
-python run_monitor.py --out data/veille.csv
-```
+  ```bash
+  python run_monitor.py --out data/veille.csv
+  ```
 
 ## 🌐 API (FastAPI)
 
-Démarrer le serveur :
-
 ```bash
 uvicorn api.main:app --reload --port 8001
+# Accédez aux docs : http://127.0.0.1:8001/docs
 ```
 
-→ Accès live : http://127.0.0.1:8001/docs
-
-## 💬 Slack bot
-
-Démarrer :
+## 💬 Slack Bot
 
 ```bash
 export SLACK_BOT_TOKEN="xoxb-..."
@@ -111,14 +111,17 @@ export SLACK_APP_TOKEN="xapp-..."
 python bot/slack_handler.py
 ```
 
-Commandes supportées :
+* **!veille** : récupère et affiche la veille
+* **!analyse** : synthèse & tendances
+* **/report \[fichier]** : génère un PPTX
 
-- `!veille` — récupère et affiche la veille
-- `!analyse` — affiche les clusters de tendance
-- `!report` — génère un rapport PPT depuis Slack
-
-### Mode debug :
+## 🐳 Docker (développement)
 
 ```bash
-python bot/slack_handler.py --simulate
+docker compose -f docker-compose.dev.yml up --build
+# Pour simuler : docker compose run --rm slack-cli --simulate
 ```
+
+---
+
+*© 2025 Revolver AI Bot — par Romeo Cavazza*
