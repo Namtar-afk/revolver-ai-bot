@@ -1,0 +1,11 @@
+<rss version="2.0">
+  <channel>
+    <title>Flux Test</title>
+    <item>
+      <title>Article Test</title>
+      <link>http://example.com/article-test</link>
+      <description>Un test d'article</description>
+      <pubDate>Mon, 12 May 2025 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with: python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run pytest
+        run: |
+          . .venv/bin/activate
+          pytest --maxfail=1 -q
+
+  infra-smoke:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:20.10.16
+        privileged: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Compose
+        run: |
+          apk add --no-cache docker-compose
+      - name: Bring up services
+        run: docker-compose -f docker-compose.dev.yml up -d
+      - name: Smoke tests
+        run: |
+          # 1) Healthcheck API
+          curl --fail http://localhost:8000/  
+          # 2) Test CLI
+          docker-compose run --rm slack-cli --simulate
+          # 3) Vérifier que le bot répond
+          curl --fail http://localhost:8000/extract-brief \
+            -F "file=@tests/samples/brief_sample.pdf"
+      - name: Tear down
+        run: docker-compose -f docker-compose.dev.yml down
