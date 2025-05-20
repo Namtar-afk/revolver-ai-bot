@@ -1,0 +1,59 @@
+# ───────────────────────────────
+# Environnements virtuels / caches Python
+.venv/
+venv/
+__pycache__/
+pycache/
+*.pyc
+*.py[cod]
+.pytest_cache/
+.cache/
+
+# ───────────────────────────────
+# Build & packaging
+*.egg-info/
+dist/
+build/
+*.tar.gz
+
+# ───────────────────────────────
+# IDE / Systèmes d'exploitation
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.swp
+.python-version
+
+# ───────────────────────────────
+# Variables d'environnement
+.env
+secrets/
+
+# ───────────────────────────────
+# Données, artefacts, fichiers métiers
+inbox/
+data/veille.csv
+report.pptx
+brief*.pdf
+mini*.pdf
+out*.pptx
+temp_brief_api*.pdf
+
+# ───────────────────────────────
+# Tests : fixtures, samples, doublons
+tests/fixtures*/
+tests/samples*/
+tests/snapshots*/
+tests/tests/
+tests/test_dummy.py
+tests/test_fetch_rss_empty*
+test_reco_generator_4.py
+
+# ───────────────────────────────
+# Fichiers générés ou dupliqués
+* 3.*
+* 4.*
+* 5.*
+

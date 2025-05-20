@@ -1,0 +1,5 @@
+site_name: Revolver AI Bot
+theme: material
+nav:
+  - Home: index.md
+  - API: api.md
