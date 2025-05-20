@@ -46,7 +46,7 @@ test:  ## Lance les tests avec pytest
 # Run & Serveur
 # -------------------------------
 run:  ## Lance le parseur CLI
-	source $(VENV)/bin/activate && $(PYTHON) run_parser.py --help
+	.venv/bin/python run_parser.py $(ARGS)
 
 start-server:  ## Démarre l’API FastAPI
 	uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
