@@ -1,1 +1,68 @@
-[COLLER ICI]
+# ========================
+# 🐍 Python & Environnement
+# ========================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+env/
+ENV/
+venv/
+
+# ========================
+# 🛠️ IDE & Éditeurs
+# ========================
+.vscode/
+.idea/
+*.swp
+*.bak
+*.tmp
+
+# ========================
+# 📓 Jupyter
+# ========================
+.ipynb_checkpoints/
+
+# ========================
+# 📄 LaTeX
+# ========================
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+build/
+
+# ========================
+# ✅ Tests & Coverage
+# ========================
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# ========================
+# 📚 Documentation (MkDocs)
+# ========================
+site/
+
+# ========================
+# 🐳 Docker & Env
+# ========================
+*.env
+.env.*
+.DS_Store
+SHA256SUM.txt
+
+# ========================
+# 🗃️ Fichiers générés ou de test
+# ========================
+briefs/
+tests/samples/*.pdf
