@@ -23,33 +23,33 @@ venv:  ## Crée l’environnement virtuel Python
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip
 
-install: venv  ## Installe les dépendances (prod + dev)
+install: venv  ## Installe les dépendances
 	$(PIP) install -r requirements.txt
 	-$(PIP) install -r requirements-dev.txt
 
-freeze:  ## Gèle les dépendances dans requirements.txt
+freeze:  ## Gèle les dépendances
 	$(PIP) freeze > requirements.txt
 
-dev: install  ## Ouvre un shell bash dans l'environnement virtuel
+dev: install  ## Shell dans l'environnement virtuel
 	@echo "Activation de l'environnement virtuel. Tapez 'exit' pour quitter."
 	@bash --rcfile <(echo "source $(VENV)/bin/activate")
 
 # ---------------------------------
-# Qualité du code & Tests
+# Qualité & Tests
 # ---------------------------------
-lint:  ## Analyse statique avec flake8
+lint:  ## Lint avec flake8
 	source $(VENV)/bin/activate && flake8 .
 
-format:  ## Formatte le code avec black et isort
+format:  ## Format avec black + isort
 	source $(VENV)/bin/activate && black . && isort .
 
-format-check:  ## Vérifie si le code est bien formaté
+format-check:  ## Vérifie le format
 	source $(VENV)/bin/activate && black --check . && isort --check-only .
 
-test:  ## Lance les tests
+test:  ## Tests unitaires
 	source $(VENV)/bin/activate && pytest --maxfail=1 -v
 
-coverage:  ## Tests + couverture
+coverage:  ## Couverture de tests
 	source $(VENV)/bin/activate && pytest --cov=./ --cov-report=term-missing
 
 # ---------------------------------
@@ -64,16 +64,16 @@ start-server:  ## Démarre l’API FastAPI
 # ---------------------------------
 # Docker
 # ---------------------------------
-docker:  ## Lance Docker Compose dev
+docker:  ## Docker Compose dev
 	docker compose -f docker-compose.dev.yml up --build
 
-publish-ghcr:  ## Publie sur GHCR
+publish-ghcr:  ## Publie l’image Docker sur GHCR
 	GHCR_PAT=$(GHCR_PAT) ./scripts/publish_ghcr.sh $(VERSION)
 
 # ---------------------------------
 # LaTeX
 # ---------------------------------
-pdf:  ## Compile PDF avec latexmk
+pdf:  ## Compile le PDF LaTeX
 	latexmk -pdf -interaction=nonstopmode -output-directory=build $(LATEX_SRC)
 	@mv build/$(LATEX_OUT) .
 
@@ -86,17 +86,16 @@ clean-pdf:  ## Nettoie les fichiers LaTeX
 clean-pycache:  ## Supprime les caches Python
 	@rm -rf __pycache__ */__pycache__ .pytest_cache .mypy_cache *.pyc .coverage
 
-clean:  ## Nettoyage des artefacts Python + locks
+clean:  ## Nettoie .pyc, __pycache__ et .git/index.lock
 	find . -name "__pycache__" -type d -exec rm -rf {} +
 	find . -name "*.pyc" -delete
-	rm -f .git/index.lock .git/HEAD.lock
+	rm -f .git/index.lock .git/HEAD.lock .git/packed-refs.lock .git/refs/heads/main.lock
 
-clean-all: clean  ## Nettoyage total
+clean-all: clean  ## Nettoyage complet
 	@rm -rf $(VENV) build dist *.egg-info
 
-unlock:  ## Déverrouille Git (.git/index.lock uniquement)
+unlock:  ## Déverrouille index.lock seulement
 	rm -f .git/index.lock
 
-unlock-full:  ## Déverrouille Git totalement (.git/index.lock + HEAD.lock)
-	rm -f .git/index.lock .git/HEAD.lock
-
+unlock-full:  ## Déverrouille tous les verrous Git
+	rm -f .git/index.lock .git/HEAD.lock .git/packed-refs.lock .git/refs/heads/main.lock
