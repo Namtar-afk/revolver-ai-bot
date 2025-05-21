@@ -1,37 +1,33 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Brief",
+  "title": "Brief Schema",
   "type": "object",
   "properties": {
-    "title": {
+    "titre": {
       "type": "string",
-      "minLength": 3,
-      "description": "Titre du projet ou de la mission"
+      "minLength": 1,
+      "description": "Le titre du brief"
     },
-    "objectives": {
+    "problème": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Description du problème à résoudre"
+    },
+    "objectifs": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Les objectifs à atteindre"
+    },
+    "kpis": {
       "type": "array",
+      "description": "Liste des KPIs mesurables",
       "items": {
         "type": "string",
-        "minLength": 3
+        "minLength": 1
       },
-      "minItems": 1,
-      "description": "Liste des objectifs du brief"
-    },
-    "internal_reformulation": {
-      "type": "string",
-      "minLength": 5,
-      "description": "Reformulation stratégique par l'équipe"
-    },
-    "summary": {
-      "type": "string",
-      "minLength": 5,
-      "description": "Résumé synthétique utilisé dans les prompts LLM"
+      "minItems": 1
     }
   },
-  "required": [
-    "title",
-    "objectives",
-    "internal_reformulation",
-    "summary"
-  ]
+  "required": ["titre", "problème", "objectifs", "kpis"],
+  "additionalProperties": false
 }

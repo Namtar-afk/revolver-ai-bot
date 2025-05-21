@@ -8,7 +8,7 @@ import requests
 import time
 
 from slack_sdk import WebClient
-from utils.logger import logger             
+from utils.logger import logger
 from bot.orchestrator import process_brief, run_veille, run_analyse
 
 # Petit délai pour laisser Docker démarrer

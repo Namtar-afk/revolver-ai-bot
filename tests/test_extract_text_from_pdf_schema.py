@@ -1,12 +1,14 @@
-import json, pytest
+import json
+import pytest
 from parser.pdf_parser import extract_text_from_pdf
-from parser.nlp_utils  import extract_brief_sections
-from jsonschema        import validate
+from parser.nlp_utils import extract_brief_sections
+from jsonschema import validate
 
-@pytest.mark.parametrize("fixture", ["brief_simple.pdf","brief_multi.pdf"])
+@pytest.mark.parametrize("fixture", ["brief_simple.pdf", "brief_multi.pdf"])
 def test_schema_validation(fixture):
     pdf = f"tests/samples/{fixture}"
     text = extract_text_from_pdf(pdf)
+    assert text is not None and text.strip() != "", f"Extraction PDF vide ou invalide pour {pdf}"
     data = extract_brief_sections(text)
     with open("schema/brief_output.schema.json", encoding="utf-8") as f:
         schema = json.load(f)

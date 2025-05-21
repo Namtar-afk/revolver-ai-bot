@@ -1,0 +1,12 @@
+TITRE MULTI EXEMPLE
+
+Problème
+Le client fait face à une baisse des ventes.
+
+Objectifs
+1. Augmenter le trafic.
+2. Améliorer la conversion.
+
+KPIs
+- +15% de trafic.
+- +5% de conversion.

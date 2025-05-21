@@ -6,7 +6,7 @@ import requests
 import subprocess
 
 from bot.orchestrator import process_brief, run_veille, run_analyse
-from bot.utils.logger import logger
+from utils.logger import logger
 
 # Dummy slack_app to avoid real Slack Bolt initialization on import
 class _DummyApp:
