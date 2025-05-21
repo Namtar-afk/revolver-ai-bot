@@ -1,7 +1,9 @@
-import os
 import json
+import os
+
 from fastapi import FastAPI, Request
 from slack_sdk.signature import SignatureVerifier
+
 from bot.slack_handler import handle_slack_event
 
 app = FastAPI()
@@ -9,6 +11,7 @@ app = FastAPI()
 # Initialize Slack signature verifier if the signing secret is provided
 signing_secret = os.getenv("SLACK_SIGNING_SECRET", "")
 verifier = SignatureVerifier(signing_secret=signing_secret) if signing_secret else None
+
 
 @app.post("/slack/events")
 async def slack_events(request: Request):
@@ -29,6 +32,7 @@ async def slack_events(request: Request):
     payload = json.loads(body)
     response = handle_slack_event(payload)
     return response
+
 
 # Health check or root endpoint
 @app.get("/")

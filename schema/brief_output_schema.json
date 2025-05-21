@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BriefOutput",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 3
+      },
+      "minItems": 1
+    },
+    "internal_reformulation": {
+      "type": "string",
+      "minLength": 5
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 5
+    }
+  },
+  "required": ["title", "objectives", "internal_reformulation", "summary"],
+  "additionalProperties": false
+}
+

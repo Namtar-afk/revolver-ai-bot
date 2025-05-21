@@ -1,6 +1,7 @@
-import streamlit as st
-from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
+from parser.pdf_parser import extract_text_from_pdf
+
+import streamlit as st
 
 st.set_page_config(page_title="Extraction de Brief", layout="centered")
 st.title("🧠 Extraction de Brief Automatisée")
@@ -23,4 +24,3 @@ if uploaded_file:
             st.error(f"❌ Erreur lors de l'extraction : {e}")
     else:
         st.error("❌ Impossible de lire le contenu du PDF.")
-

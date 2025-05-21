@@ -1,6 +1,7 @@
 import pytest
+
 from reco import generator
-from reco.models import BriefReminder, TrendItem, DeckData
+from reco.models import BriefReminder, DeckData, TrendItem
 
 
 @pytest.fixture
@@ -9,7 +10,7 @@ def dummy_brief():
         title="Lancement MycoBeauty",
         objectives=["Accroître notoriété", "Éduquer sur les bienfaits des champignons"],
         internal_reformulation="Créer une campagne innovante autour de l'univers fongique",
-        summary="Campagne de lancement sur les réseaux sociaux + influence"
+        summary="Campagne de lancement sur les réseaux sociaux + influence",
     )
 
 
@@ -22,7 +23,7 @@ def dummy_trends():
             date="2025-05-10",
             snippet="Les routines naturelles explosent sur TikTok",
             theme="Naturalité",
-            evidence=[]
+            evidence=[],
         ),
         TrendItem(
             source="Instagram",
@@ -30,8 +31,8 @@ def dummy_trends():
             date="2025-05-11",
             snippet="L'esthétique mycologique cartonne",
             theme="Esthétique fongique",
-            evidence=[]
-        )
+            evidence=[],
+        ),
     ]
 
 

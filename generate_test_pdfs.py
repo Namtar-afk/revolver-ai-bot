@@ -1,14 +1,22 @@
+#!/usr/bin/env python3
 from fpdf import FPDF
-import os
 
-os.makedirs("tests/samples", exist_ok=True)
 
-def create_pdf(filename, text):
+def generate_pdf(output_path: str) -> None:
+    """
+    Génère un PDF de test minimal et l'enregistre sous output_path.
+    """
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, text)
-    pdf.output(filename)
+    pdf.cell(200, 10, txt="Brief de test", ln=1, align="L")
+    pdf.output(output_path)
 
-create_pdf("tests/samples/brief_simple.pdf", "Titre: Brief Simple\nObjectifs:\n- Objectif 1\n- Objectif 2\nRésumé: Ceci est un brief simple de test.")
-create_pdf("tests/samples/brief_multi.pdf", "Titre: Brief Multi\nObjectifs:\n- Objectif A\n- Objectif B\nRésumé: Ceci est un brief multi-page de test.")
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Génère un PDF de test")
+    parser.add_argument("output", help="Chemin de sortie du PDF")
+    args = parser.parse_args()
+    generate_pdf(args.output)

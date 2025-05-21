@@ -13,11 +13,11 @@ Usage :
 """
 
 import argparse
-import textwrap
 import sys
+import textwrap
 from pathlib import Path
 
-from reportlab.lib.pagesizes import LETTER, A4
+from reportlab.lib.pagesizes import A4, LETTER
 from reportlab.pdfgen import canvas
 
 
@@ -60,17 +60,37 @@ def main():
     p = argparse.ArgumentParser(
         description="Transforme un brief .txt en PDF paginé (StandardEncoding pour extraction fiable)."
     )
-    p.add_argument("-i", "--input", type=Path, required=True,
-                   help="Chemin vers le fichier source (.txt, .md…)")
-    p.add_argument("-o", "--output", type=Path,
-                   default=Path("tests/samples/brief_generated.pdf"),
-                   help="Chemin de sortie du PDF")
-    p.add_argument("-s", "--pagesize", choices=["LETTER", "A4"],
-                   default="LETTER", help="Format de page")
-    p.add_argument("-m", "--margin", type=int, default=72,
-                   help="Marge en points (72 = 1 pouce)")
-    p.add_argument("-w", "--linewidth", type=int, default=85,
-                   help="Nombre max de caractères par ligne")
+    p.add_argument(
+        "-i",
+        "--input",
+        type=Path,
+        required=True,
+        help="Chemin vers le fichier source (.txt, .md…)",
+    )
+    p.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=Path("tests/samples/brief_generated.pdf"),
+        help="Chemin de sortie du PDF",
+    )
+    p.add_argument(
+        "-s",
+        "--pagesize",
+        choices=["LETTER", "A4"],
+        default="LETTER",
+        help="Format de page",
+    )
+    p.add_argument(
+        "-m", "--margin", type=int, default=72, help="Marge en points (72 = 1 pouce)"
+    )
+    p.add_argument(
+        "-w",
+        "--linewidth",
+        type=int,
+        default=85,
+        help="Nombre max de caractères par ligne",
+    )
     args = p.parse_args()
 
     try:

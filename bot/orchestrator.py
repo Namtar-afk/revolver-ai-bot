@@ -1,22 +1,45 @@
+#!/usr/bin/env python3
+import argparse
+import csv
+import json
 import os
 import sys
-import json
-import csv
-import argparse
-import pdfplumber
-from jsonschema import validate, ValidationError
-
-from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
-from utils.logger import logger
+from parser.pdf_parser import extract_text_from_pdf
+
+from jsonschema import ValidationError, validate
+
+from bot.analysis import detect_trends, summarize_items
 from bot.monitoring import fetch_all_sources, save_to_csv
-from bot.analysis import summarize_items, detect_trends
+from utils.logger import logger
+
+
+def load_brief_schema() -> dict:
+    schema_path = os.path.join(
+        os.path.dirname(__file__), "..", "schema", "brief_schema.json"
+    )
+    with open(schema_path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def normalize_keys(sections: dict) -> dict:
+    """
+    Corrige les clés alias (US → FR) pour valider le JSON.
+    """
+    key_map = {
+        "title": "titre",
+        "objectives": "objectifs",
+    }
+    for old, new in key_map.items():
+        if old in sections and new not in sections:
+            sections[new] = sections.pop(old)
+    return sections
 
 
 def process_brief(file_path: str) -> dict:
     """
-    Lit un PDF de brief, en extrait le texte, segmente les sections,
-    valide selon le schéma JSON et renvoie le dictionnaire structuré.
+    Extrait un brief depuis un PDF, corrige les clés, remplit
+    les champs obligatoires et valide le schéma.
     """
     logger.info(f"[orchestrator] Lecture du fichier : {file_path}")
     text = extract_text_from_pdf(file_path)
@@ -24,11 +47,31 @@ def process_brief(file_path: str) -> dict:
         logger.error("[orchestrator] Échec extraction PDF.")
         raise RuntimeError("Extraction PDF échouée")
 
+    # Extraction et normalisation initiale
     sections = extract_brief_sections(text)
-    schema_path = os.path.join(os.path.dirname(__file__), "..", "schema", "brief_schema.json")
-    with open(schema_path, encoding="utf-8") as f:
-        schema = json.load(f)
+    sections = normalize_keys(sections)
 
+    # === Remplissage des champs obligatoires ===
+    # Titre
+    sections.setdefault("titre", "Brief extrait automatiquement")
+    # Problème
+    if not sections.get("problème") or not isinstance(sections.get("problème"), str):
+        sections["problème"] = "Problème non précisé"
+    # Objectifs : convertit liste (issue de nlp_utils) en texte
+    obj_val = sections.get("objectifs")
+    if isinstance(obj_val, list):
+        sections["objectifs"] = (
+            "; ".join(obj_val) if obj_val else "Objectifs non précisés"
+        )
+    elif not obj_val:
+        sections["objectifs"] = "Objectifs non précisés"
+    # KPIs : doit être une liste non vide
+    kpi_val = sections.get("kpis")
+    if not isinstance(kpi_val, list) or not kpi_val:
+        sections["kpis"] = ["KPI non identifié"]
+
+    # === Validation JSON ===
+    schema = load_brief_schema()
     try:
         validate(instance=sections, schema=schema)
         logger.info("[orchestrator] Brief conforme au schéma ✅")
@@ -40,7 +83,7 @@ def process_brief(file_path: str) -> dict:
 
 def run_veille(output_path: str = "data/veille.csv") -> list[dict]:
     """
-    Récupère les items de veille média, les enregistre en CSV et retourne la liste.
+    Lance la veille et sauvegarde les résultats en CSV.
     """
     logger.info("[veille] Lancement de la veille média…")
     items = fetch_all_sources()
@@ -51,17 +94,16 @@ def run_veille(output_path: str = "data/veille.csv") -> list[dict]:
 
 def run_analyse(csv_path: str = None) -> None:
     """
-    Analyse les items de veille : synthèse et détection de tendances.
-    Affiche le résumé et la liste des tendances.
+    Analyse les résultats de veille.
     """
-    veille_file = csv_path or os.getenv("VEILLE_CSV_PATH", "data/veille.csv")
-    logger.info(f"[analyse] Chargement des items depuis {veille_file}")
+    path = csv_path or os.getenv("VEILLE_CSV_PATH", "data/veille.csv")
+    logger.info(f"[analyse] Chargement des items depuis {path}")
 
-    if not os.path.exists(veille_file):
-        logger.error(f"[analyse] Fichier introuvable : {veille_file}")
-        raise FileNotFoundError(f"{veille_file} non trouvé")
+    if not os.path.exists(path):
+        logger.error(f"[analyse] Fichier introuvable : {path}")
+        raise FileNotFoundError(f"{path} non trouvé")
 
-    with open(veille_file, newline="", encoding="utf-8") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         items = list(reader)
 
@@ -69,42 +111,62 @@ def run_analyse(csv_path: str = None) -> None:
     trends = detect_trends(items)
 
     print(summary)
+    print("\nTendances détectées :")
     for trend in trends:
         print(f"• {trend}")
 
 
+def delegate_to_report(brief_path: str, output_path: str) -> None:
+    """
+    Appelle run_parser.py pour générer un rapport PPTX.
+    """
+    logger.info("[report] Génération du rapport via run_parser.py")
+    os.execvp(
+        sys.executable,
+        [
+            sys.executable,
+            "run_parser.py",
+            "--brief",
+            brief_path or "",
+            "--report",
+            output_path,
+        ],
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Orchestrateur Revolvr AI Bot")
-    parser.add_argument("--brief", help="Chemin vers le PDF de brief")
-    parser.add_argument("--veille", nargs="?", const="data/veille.csv", help="Lance la veille et sauve (optionnel: chemin)")
-    parser.add_argument("--analyse", action="store_true", help="Lance l'analyse des items de veille")
-    parser.add_argument("--report", metavar="OUTPUT", help="Génère un PPTX de recommandations")
+    parser.add_argument("--brief", help="Chemin vers un PDF de brief à traiter")
+    parser.add_argument(
+        "--veille",
+        nargs="?",
+        const="data/veille.csv",
+        help="Lancer la veille (chemin optionnel)",
+    )
+    parser.add_argument(
+        "--analyse", action="store_true", help="Analyser les données de veille"
+    )
+    parser.add_argument(
+        "--report", metavar="OUTPUT", help="Générer un PPTX à partir d’un brief"
+    )
     args = parser.parse_args()
 
-    if args.brief:
-        try:
+    try:
+        if args.brief:
             process_brief(args.brief)
-        except Exception as e:
-            logger.error(f"[orchestrator] Échec process_brief : {e}")
-            sys.exit(1)
 
-    if args.veille is not None:
-        try:
+        if args.veille is not None:
             run_veille(args.veille)
-        except Exception as e:
-            logger.error(f"[orchestrator] Échec run_veille : {e}")
-            sys.exit(1)
 
-    if args.analyse:
-        try:
-            run_analyse()
-        except Exception as e:
-            logger.error(f"[orchestrator] Échec run_analyse : {e}")
-            sys.exit(1)
+        if args.analyse:
+            run_analyse(args.veille or "data/veille.csv")
 
-    if args.report:
-        # Délègue la génération PPTX au CLI principal
-        os.execvp(sys.executable, [sys.executable, "run_parser.py", "--brief", args.brief or "", "--report", args.report])
+        if args.report:
+            delegate_to_report(args.brief, args.report)
+
+    except Exception as e:
+        logger.error(f"[orchestrator] Erreur critique : {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

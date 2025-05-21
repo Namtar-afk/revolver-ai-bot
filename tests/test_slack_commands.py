@@ -1,6 +1,8 @@
 import os
+
 import pytest
-from bot.slack_handler import handle_veille_command, handle_analyse_command
+
+from bot.slack_handler import handle_analyse_command, handle_veille_command
 
 
 def test_handle_veille_command(tmp_path, monkeypatch):
@@ -19,6 +21,7 @@ def test_handle_veille_command(tmp_path, monkeypatch):
 def test_handle_analyse_command(monkeypatch):
     # Empêcher l'exécution réelle de run_analyse
     import bot.slack_handler as sh
+
     monkeypatch.setattr(sh, "run_analyse", lambda: None)
 
     message = handle_analyse_command()

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 import os
+
 from pptx import Presentation
+
 from reco.models import DeckData
+
 
 def build_ppt(deck: DeckData, output_path: str):
     template_path = "pptx_generator/templates/base.pptx"
-    prs = Presentation(template_path) if os.path.exists(template_path) else Presentation()
+    prs = (
+        Presentation(template_path) if os.path.exists(template_path) else Presentation()
+    )
 
     # 1. Brief Reminder
     slide = prs.slides.add_slide(prs.slide_layouts[1])

@@ -3,29 +3,22 @@ import json
 import os
 import sys
 from argparse import ArgumentParser
-from jsonschema import validate, ValidationError
-
-from parser.pdf_parser import extract_text_from_pdf
 from parser.nlp_utils import extract_brief_sections
-from reco.generator import generate_recommendation
-from reco.models import (
-    BriefReminder,
-    DeckData,
-    BrandOverview,
-    StateOfPlaySection,
-)
+from parser.pdf_parser import extract_text_from_pdf
+
+from jsonschema import ValidationError, validate
+
 import pptx_generator.slide_builder
+from reco.generator import generate_recommendation
+from reco.models import (BrandOverview, BriefReminder, DeckData,
+                         StateOfPlaySection)
 
 # === Defaults ===
 DEFAULT_BRIEF = os.path.join(
-    os.path.dirname(__file__),
-    "tests", "samples", "brief_sample.pdf"
+    os.path.dirname(__file__), "tests", "samples", "brief_sample.pdf"
 )
 
-SCHEMA_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "schema", "brief_schema.json"
-)
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema", "brief_schema.json")
 
 
 def parse_brief(path: str) -> dict:
@@ -68,13 +61,13 @@ def main():
                 title="Brief statique",
                 objectives=["Objectif générique"],
                 internal_reformulation="Reformulation automatique du problème.",
-                summary="Résumé automatique de la situation."
+                summary="Résumé automatique de la situation.",
             )
 
         # b. Veille
         try:
-            from bot.monitoring import fetch_all_sources, save_to_csv
             from bot.analysis import detect_trends
+            from bot.monitoring import fetch_all_sources, save_to_csv
 
             veille = fetch_all_sources()
             save_to_csv(veille, "data/veille.csv")

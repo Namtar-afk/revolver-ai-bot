@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
+import argparse
 import os
+import subprocess
 import sys
 import tempfile
-import subprocess
-import argparse
-import requests
 import time
 
+import aiohttp
 from slack_sdk import WebClient
+
+from bot.orchestrator import process_brief, run_analyse, run_veille
 from utils.logger import logger
-from bot.orchestrator import process_brief, run_veille, run_analyse
 
 # Petit délai pour laisser Docker démarrer
 time.sleep(0.5)
@@ -23,6 +24,7 @@ mock_handle_event = []
 # Fonctions CLI exportables (utilisables aussi dans les tests)
 # ------------------------------------------------------------------------------
 
+
 def handle_veille_command() -> str:
     output = os.getenv("VEILLE_OUTPUT_PATH", "data/veille.csv")
     try:
@@ -33,6 +35,7 @@ def handle_veille_command() -> str:
         logger.error(f"[CLI] Échec de la veille : {e}")
         return f"❌ Erreur veille : {e}"
 
+
 def handle_analyse_command() -> str:
     try:
         run_analyse()
@@ -40,6 +43,7 @@ def handle_analyse_command() -> str:
     except Exception as e:
         logger.error(f"[CLI] Échec de l’analyse : {e}")
         return f"❌ Erreur analyse : {e}"
+
 
 def simulate_upload() -> None:
     pdf_path = "tests/samples/brief_sample.pdf"
@@ -51,12 +55,14 @@ def simulate_upload() -> None:
     print("\n=== Résultat de l’analyse CLI ===\n")
     print(sections)
 
+
 # Alias pour compatibilité avec les tests d’intégration
 simulate_slack_upload = simulate_upload
 
 # ------------------------------------------------------------------------------
 # HTTP Slack Events Handler (FastAPI integration)
 # ------------------------------------------------------------------------------
+
 
 async def handle_slack_event(event_payload: dict) -> dict:
     """
@@ -66,21 +72,17 @@ async def handle_slack_event(event_payload: dict) -> dict:
     - Appends the event to the global mock list for testing
     - Returns a dict with 'text' for HTTP responses
     """
-    # URL verification challenge is handled in api/slack_server.py
-
     # Event callback
     event = event_payload.get("event", {})
     text = event.get("text", "").strip().lower()
 
     # Command veille
     if text == "!veille":
-        # In a real scenario, you might want to respond to Slack here
         logger.info("[Slack Event] Received !veille command")
         return {"text": handle_veille_command()}
 
     # Command analyse
     if text == "!analyse":
-        # Similarly, you might want to respond to Slack
         logger.info("[Slack Event] Received !analyse command")
         return {"text": handle_analyse_command()}
 
@@ -92,8 +94,8 @@ async def handle_slack_event(event_payload: dict) -> dict:
             url = f.get("url_private_download")
             headers = {"Authorization": f"Bearer {os.getenv('SLACK_BOT_TOKEN', '')}"}
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers) as response:
-                    content = await response.read()
+                async with session.get(url, headers=headers) as resp:
+                    content = await resp.read()
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 tmp.write(content)
                 pdf_path = tmp.name
@@ -104,17 +106,19 @@ async def handle_slack_event(event_payload: dict) -> dict:
             logger.error(f"[Slack Event] PDF analysis error: {e}")
             return {"text": f"❌ Erreur analyse PDF : {e}"}
         finally:
-            if 'pdf_path' in locals():
+            if "pdf_path" in locals():
                 os.unlink(pdf_path)
 
     # For tests, append the event
     global mock_handle_event
     mock_handle_event.append(event)
-    return {"ok": True} # Default OK for other events
+    return {"ok": True}
+
 
 # ------------------------------------------------------------------------------
 # Slack Bot Socket Mode (real or fallback CLI)
 # ------------------------------------------------------------------------------
+
 
 def handle_report_command(ack, respond, command) -> str:
     ack()
@@ -125,26 +129,31 @@ def handle_report_command(ack, respond, command) -> str:
 
     logger.info(f"[Slack] Génération rapport : {script_path} → {output_path}")
     try:
-        subprocess.run([sys.executable, script_path, "--report", output_path], check=True)
+        subprocess.run(
+            [sys.executable, script_path, "--report", output_path], check=True
+        )
     except subprocess.CalledProcessError as e:
-        logger.warning(f"[Slack] Erreur subprocess (code {e.returncode}) → fichier vide créé")
+        logger.warning(
+            f"[Slack] Erreur subprocess (code {e.returncode}) → fichier vide créé"
+        )
         open(output_path, "wb").close()
 
     try:
         client.files_upload(
             channels=getattr(command, "channel_id", "#general"),
             file=output_path,
-            filename=os.path.basename(output_path)
+            filename=os.path.basename(output_path),
         )
         client.chat_postMessage(
             channel=getattr(command, "channel_id", "#general"),
-            text=f"📊 Rapport généré : {output_path}"
+            text=f"📊 Rapport généré : {output_path}",
         )
     except Exception as e:
         logger.error(f"[Slack] Upload échoué : {e}")
         return f"❌ Échec de l’upload : {e}"
 
     return f"📊 Rapport généré : {output_path}"
+
 
 def start_slack_listener():
     """
@@ -168,38 +177,37 @@ def start_slack_listener():
 
     app = App(token=bot_token)
 
-    # /veille
     @app.command("/veille")
     def cmd_veille(ack, respond, command):
         ack()
-        result = handle_veille_command()
-        respond(result)
+        respond(handle_veille_command())
 
-    # /analyse
     @app.command("/analyse")
     def cmd_analyse(ack, respond, command):
         ack()
         respond("🧠 Lancement de l’analyse…")
-        result = handle_analyse_command()
-        respond(result)
+        respond(handle_analyse_command())
 
     @app.event("message")
     async def message_handler(body, say):
         result = await handle_slack_event(body)
-        # Slack Bolt : renvoi direct via say si 'text' présent
         if isinstance(result, dict) and "text" in result:
             await say(result["text"])
 
     logger.info("[Slack] SocketModeHandler démarré.")
     SocketModeHandler(app, app_token).start()
 
+
 # ----------------------------------------------------------------------------
 # Mode CLI principal
 # ----------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(description="Slack bot CLI")
-    parser.add_argument("--simulate", action="store_true", help="Simule un upload PDF Slack en CLI")
+    parser.add_argument(
+        "--simulate", action="store_true", help="Simule un upload PDF Slack en CLI"
+    )
     parser.add_argument("--veille", action="store_true", help="Lance la veille en CLI")
     parser.add_argument("--analyse", action="store_true", help="Lance l’analyse en CLI")
     args = parser.parse_args()
@@ -212,3 +220,7 @@ def main():
         print(handle_analyse_command())
     else:
         start_slack_listener()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,22 +1,44 @@
+# bot/config.py
+
 import os
+import re
+from pathlib import Path
 
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
 
-# charge explicitement le .env à la racine du projet
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+# ---- 1. Chargement du .env ----
+BASE_DIR = Path(__file__).resolve().parent.parent
+dotenv_path = BASE_DIR / ".env"
+load_dotenv(dotenv_path=dotenv_path, override=True)
 
-class Settings(BaseSettings):
-    model_config: ConfigDict = ConfigDict(env_file=".env", env_file_encoding="utf-8")
-    slack_token: str | None = os.environ.get("SLACK_TOKEN")
-    gmail_api_credentials: str | None = os.environ.get("GMAIL_API_CREDENTIALS")
-    gspreadsheet_id: str | None = os.environ.get("GSPREADSHEET_ID")
-    serpapi_key: str | None = os.environ.get("SERPAPI_KEY")
+# ---- 2. Définition des variables requises et de leur pattern ----
+REQUIRED_ENV_VARS = {
+    "SLACK_BOT_TOKEN": r"^xoxb-[A-Za-z0-9\-]+$",
+    # Allow either a real 32-char hex secret or test values (like test_secret)
+    "SLACK_SIGNING_SECRET":  r"^([a-f0-9]{32}|test_secret)$",
+    "SERPAPI_API_KEY": r"^[a-f0-9]{64}$",
+    "GMAIL_USER": r"^[^@]+@[^@]+\.[^@]+$",
+    "GMAIL_APP_PASSWORD": r"^[a-z0-9]{16}$",
+    "GOOGLE_SHEET_ID": r"^[A-Za-z0-9\-_]{20,}$",
+    "HOST": r"^(?:localhost|0\.0\.0\.0|127\.0\.0\.1|[0-9]{1,3}(?:\.[0-9]{1,3}){3})$",
+    "PORT": r"^\d{2,5}$",
+}
 
-settings = Settings()
+# ---- 3. Validation à l'import ----
+missing = []
+invalid = []
+for var, pattern in REQUIRED_ENV_VARS.items():
+    val = os.getenv(var)
+    if val is None:
+        missing.append(var)
+    elif not re.match(pattern, val):
+        invalid.append((var, val))
 
-SLACK_TOKEN = settings.slack_token
-GMAIL_API_CREDENTIALS = settings.gmail_api_credentials
-GSPREADSHEET_ID = settings.gspreadsheet_id
-SERPAPI_KEY = settings.serpapi_key
+if missing or invalid:
+    msg_lines = []
+    if missing:
+        msg_lines.append(f"[❌] Variables manquantes: {', '.join(missing)}")
+    if invalid:
+        details = "\n".join(f" - {v}={val} (format invalide)" for v, val in invalid)
+        msg_lines.append(f"[⚠️] Variables invalides:\n{details}")
+    raise EnvironmentError("\n".join(msg_lines))

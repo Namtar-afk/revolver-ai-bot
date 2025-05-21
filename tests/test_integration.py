@@ -1,7 +1,8 @@
 import os
-import sys
-import subprocess
 import shutil
+import subprocess
+import sys
+
 import pytest
 
 
@@ -15,8 +16,7 @@ def test_run_parser_cli():
 
     assert result.returncode == 0, f"Le CLI a planté : {result.stderr}"
     assert '"title": "Brief extrait automatiquement"' in result.stdout, (
-        "Le titre attendu n’a pas été trouvé dans la sortie :\n"
-        f"{result.stdout}"
+        "Le titre attendu n’a pas été trouvé dans la sortie :\n" f"{result.stdout}"
     )
 
 
@@ -31,8 +31,7 @@ def test_slack_simulator(capsys):
     out, _ = capsys.readouterr()
 
     assert "Brief extrait automatiquement" in out or "Résumé" in out, (
-        "La simulation Slack n’a pas affiché le titre ni le résumé attendu :\n"
-        f"{out}"
+        "La simulation Slack n’a pas affiché le titre ni le résumé attendu :\n" f"{out}"
     )
 
 
@@ -50,6 +49,7 @@ def test_email_handler(tmp_path, capsys):
 
     # Pointe l'INBOX_DIR de l'email handler vers notre dossier temporaire
     import bot.email_handler as email_handler
+
     email_handler.INBOX_DIR = str(inbox_dir)
 
     # Lance le traitement

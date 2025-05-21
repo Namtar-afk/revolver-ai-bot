@@ -4,24 +4,19 @@ import pathlib
 from typing import List
 
 import openai
-from reco.models import (
-    DeckData,
-    BriefReminder,
-    BrandOverview,
-    StateOfPlaySection,
-    Idea,
-    Milestone,
-    BudgetItem,
-    TrendItem,
-)
+
+from reco.models import (BrandOverview, BriefReminder, BudgetItem, DeckData,
+                         Idea, Milestone, StateOfPlaySection, TrendItem)
 
 # Clé API différée à l'exécution
 _openai_api_key = os.getenv("OPENAI_API_KEY", "")
+
 
 def _ensure_api_key():
     if not _openai_api_key:
         raise RuntimeError("Missing OPENAI_API_KEY environment variable")
     openai.api_key = _openai_api_key
+
 
 def _call_llm(prompt_path: str, context: str) -> str:
     """
@@ -37,11 +32,15 @@ def _call_llm(prompt_path: str, context: str) -> str:
     )
     return response.choices[0].message.content.strip()
 
+
 def _build_context(brief: BriefReminder, trends: List[TrendItem]) -> str:
     lines = [f"# Brief\n{brief.summary}", "# Tendances"]
     for trend in trends:
-        lines.append(f"- {trend.date} | {trend.source} : {trend.title}\n{trend.snippet}")
+        lines.append(
+            f"- {trend.date} | {trend.source} : {trend.title}\n{trend.snippet}"
+        )
     return "\n".join(lines)
+
 
 def _parse_list(text: str) -> List[str]:
     """
@@ -51,33 +50,41 @@ def _parse_list(text: str) -> List[str]:
     lines = text.strip().splitlines()
     return [line.lstrip("-*0123456789. ").strip() for line in lines if line.strip()]
 
+
 def generate_insights(brief: BriefReminder, trends: List[TrendItem]) -> List[Idea]:
     context = _build_context(brief, trends)
     raw = _call_llm("prompts/insights.md", context)
     return [Idea(label=item, bullets=[]) for item in _parse_list(raw)]
+
 
 def generate_hypotheses(brief: BriefReminder, trends: List[TrendItem]) -> List[Idea]:
     context = _build_context(brief, trends)
     raw = _call_llm("prompts/hypotheses.md", context)
     return [Idea(label=item, bullets=[]) for item in _parse_list(raw)]
 
+
 def generate_kpis(brief: BriefReminder, trends: List[TrendItem]) -> List[Idea]:
     context = _build_context(brief, trends)
     raw = _call_llm("prompts/kpis.md", context)
     return [Idea(label=item, bullets=[]) for item in _parse_list(raw)]
 
+
 def generate_executive_summary(brief: BriefReminder, trends: List[TrendItem]) -> str:
     context = _build_context(brief, trends)
     return _call_llm("prompts/executive_summary.md", context)
 
+
 def generate_ideas(brief: BriefReminder, trends: List[TrendItem]) -> List[Idea]:
     return []  # Stub
+
 
 def generate_timeline(brief: BriefReminder, trends: List[TrendItem]) -> List[Milestone]:
     return []  # Stub
 
+
 def generate_budget(brief: BriefReminder, trends: List[TrendItem]) -> List[BudgetItem]:
     return []  # Stub
+
 
 def generate_recommendation(brief: BriefReminder, trends: List[TrendItem]) -> DeckData:
     """
@@ -98,9 +105,7 @@ def generate_recommendation(brief: BriefReminder, trends: List[TrendItem]) -> De
         top3_competitor_actions=[],
     )
 
-    state_of_play = [
-        StateOfPlaySection(theme=t.theme, evidence=[]) for t in trends
-    ]
+    state_of_play = [StateOfPlaySection(theme=t.theme, evidence=[]) for t in trends]
 
     return DeckData(
         brief_reminder=brief,

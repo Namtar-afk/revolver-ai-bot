@@ -1,10 +1,11 @@
 import os
 import re
+
 import pytest
 from dotenv import load_dotenv
 
 # Charge automatiquement les variables d’environnement depuis le fichier .env
-load_dotenv()
+load_dotenv(override=True)
 
 # Définition des variables obligatoires et de leur format attendu (regex)
 REQUIRED_ENV_VARS = {
@@ -17,6 +18,7 @@ REQUIRED_ENV_VARS = {
     "HOST": r"^(localhost|0\.0\.0\.0|127\.0\.0\.1|[0-9]{1,3}(\.[0-9]{1,3}){3})$",
     "PORT": r"^\d{2,5}$",
 }
+
 
 def test_all_required_env_vars_are_set_and_valid():
     """
@@ -44,4 +46,3 @@ def test_all_required_env_vars_are_set_and_valid():
         raise AssertionError(error_msg.strip())
 
     print("[✅] Toutes les variables d’environnement sont définies et valides.")
-

@@ -15,4 +15,3 @@ handler.setFormatter(formatter)
 # Avoid adding multiple handlers if module gets re-imported
 if not logger.handlers:
     logger.addHandler(handler)
-

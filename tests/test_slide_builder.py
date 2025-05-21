@@ -1,13 +1,13 @@
 import os
 import tempfile
-from pptx import Presentation
-import pytest
 
-from reco.models import (
-    BriefReminder, BrandOverview, StateOfPlaySection,
-    Idea, Milestone, BudgetItem, DeckData
-)
+import pytest
+from pptx import Presentation
+
 from pptx_generator.slide_builder import build_ppt
+from reco.models import (BrandOverview, BriefReminder, BudgetItem, DeckData,
+                         Idea, Milestone, StateOfPlaySection)
+
 
 @pytest.fixture
 def minimal_deck():
@@ -15,13 +15,13 @@ def minimal_deck():
         title="Test",
         objectives=["Obj1"],
         internal_reformulation="Reformulation",
-        summary="Résumé"
+        summary="Résumé",
     )
     brand = BrandOverview(
         description_paragraphs=["Desc"],
         competitive_positioning={"axes": [], "brands": []},
         persona={"heading": ["P"], "bullets": []},
-        top3_competitor_actions=[]
+        top3_competitor_actions=[],
     )
     deck = DeckData(
         brief_reminder=brief,
@@ -33,9 +33,10 @@ def minimal_deck():
         executive_summary="Exec",
         ideas=[Idea(label="Idea1", bullets=[])],
         timeline=[Milestone(label="M1", deadline="2025-06-01")],
-        budget=[BudgetItem(category="B1", estimate=100.0, comment="C1")]
+        budget=[BudgetItem(category="B1", estimate=100.0, comment="C1")],
     )
     return deck
+
 
 def test_build_ppt_creates_file(minimal_deck):
     with tempfile.TemporaryDirectory() as tmp:

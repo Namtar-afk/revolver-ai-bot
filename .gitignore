@@ -4,11 +4,11 @@
 __pycache__/
 *.py[cod]
 *.so
-*.egg
 *.egg-info/
-.eggs/
 dist/
 build/
+
+# Virtual environments
 .venv/
 env/
 ENV/
@@ -38,7 +38,6 @@ venv/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
-build/
 
 # ========================
 # ✅ Tests & Coverage
@@ -54,15 +53,33 @@ htmlcov/
 site/
 
 # ========================
-# 🐳 Docker & Env
+# 🐳 Docker & Configs
 # ========================
-*.env
-.env.*
-.DS_Store
-SHA256SUM.txt
+Dockerfile*
+docker-compose*.yml
+.ngrok.yml
+Procfile
+# Ne plus ignorer les .env à la racine
 
 # ========================
 # 🗃️ Fichiers générés ou de test
 # ========================
 briefs/
 tests/samples/*.pdf
+
+# ========================
+# 🔒 Secrets
+# ========================
+/secrets/*
+!/secrets/credential.json
+!/secrets/.env
+
+# ========================
+# 🌍 Autres
+# ========================
+.DS_Store
+
+# ========================
+# Fichier d'environnement racine
+# ========================
+.env

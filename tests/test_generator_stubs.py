@@ -1,12 +1,10 @@
 import os
+
 import pytest
-from reco.generator import (
-    generate_insights,
-    generate_hypotheses,
-    generate_kpis,
-    generate_executive_summary,
-    generate_recommendation,
-)
+
+from reco.generator import (generate_executive_summary, generate_hypotheses,
+                            generate_insights, generate_kpis,
+                            generate_recommendation)
 from reco.models import BriefReminder, TrendItem
 
 
@@ -16,7 +14,7 @@ def sample_brief():
         title="Campagne 2025",
         objectives=["Obj1", "Obj2"],
         internal_reformulation="Reformulation interne ici",
-        summary="Résumé auto pour les prompts"
+        summary="Résumé auto pour les prompts",
     )
 
 
@@ -41,7 +39,9 @@ def patch_env(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def mock_llm(monkeypatch):
-    monkeypatch.setattr("reco.generator._call_llm", lambda path, ctx: "- Insight 1\n- Insight 2")
+    monkeypatch.setattr(
+        "reco.generator._call_llm", lambda path, ctx: "- Insight 1\n- Insight 2"
+    )
 
 
 def test_generate_insights_signature(sample_brief, sample_trends):

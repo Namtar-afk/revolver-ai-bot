@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/revolver-ai-bot)](https://pypi.org/project/revolver-ai-bot/)
 [![Tests](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml/badge.svg)](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/romeocavazza/revolver-ai-bot/branch/main/graph/badge.svg)](https://codecov.io/gh/romeocavazza/revolver-ai-bot)
+![Coverage](docs/assets/coverage.svg)
 
 ---
 

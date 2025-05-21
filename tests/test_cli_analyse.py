@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 import os
+import subprocess
 import sys
 import tempfile
-import requests
-import subprocess
 
-from bot.orchestrator import process_brief, run_veille, run_analyse
+import requests
+
+from bot.orchestrator import process_brief, run_analyse, run_veille
 from utils.logger import logger
+
 
 # Dummy slack_app to avoid real Slack Bolt initialization on import
 class _DummyApp:
     def command(self, *args, **kwargs):
-        def decorator(f): return f
+        def decorator(f):
+            return f
+
         return decorator
+
     def event(self, *args, **kwargs):
-        def decorator(f): return f
+        def decorator(f):
+            return f
+
         return decorator
+
 
 slack_app = _DummyApp()
 
@@ -65,9 +73,12 @@ def handle_report_command(ack, respond, command):
             check=True,
         )
     except subprocess.CalledProcessError as e:
-        logger.warning(f"[Slack] subprocess report failed (code {e.returncode}), creating empty file")
+        logger.warning(
+            f"[Slack] subprocess report failed (code {e.returncode}), creating empty file"
+        )
         # Ensure file exists for tests
-        with open(output_path, "wb"): pass
+        with open(output_path, "wb"):
+            pass
 
     return f"📊 Rapport généré : {output_path}"
 
@@ -105,12 +116,18 @@ def real_slack_listener():
     @app.event("message")
     def message_listener(body, say, client):
         text = body.get("event", {}).get("text", "").strip().lower()
-        if text == "!veille": say(handle_veille_command()); return
-        if text == "!analyse": say("🧠 Lancement de l’analyse…"); say(handle_analyse_command()); return
+        if text == "!veille":
+            say(handle_veille_command())
+            return
+        if text == "!analyse":
+            say("🧠 Lancement de l’analyse…")
+            say(handle_analyse_command())
+            return
 
         for f in body.get("event", {}).get("files", []):
-            if f.get("filetype") != "pdf": continue
-            info = client.files_info(file=f["id"])['file']
+            if f.get("filetype") != "pdf":
+                continue
+            info = client.files_info(file=f["id"])["file"]
             url = info["url_private_download"]
             headers = {"Authorization": f"Bearer {token}"}
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
@@ -129,13 +146,21 @@ def real_slack_listener():
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Slack handler CLI / listener")
-    parser.add_argument("--simulate", action="store_true",
-                        help="Lancer le simulateur CLI (parse sample local)")
-    parser.add_argument("--veille", action="store_true",
-                        help="Déclencher la veille média")
-    parser.add_argument("--analyse", action="store_true",
-                        help="Déclencher l'analyse des items de veille")
+    parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Lancer le simulateur CLI (parse sample local)",
+    )
+    parser.add_argument(
+        "--veille", action="store_true", help="Déclencher la veille média"
+    )
+    parser.add_argument(
+        "--analyse",
+        action="store_true",
+        help="Déclencher l'analyse des items de veille",
+    )
     args = parser.parse_args()
 
     if args.simulate:

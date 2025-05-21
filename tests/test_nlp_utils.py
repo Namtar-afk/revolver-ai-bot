@@ -1,5 +1,6 @@
-import pytest
 from parser.nlp_utils import extract_brief_sections
+
+import pytest
 
 
 def test_extract_brief_sections_minimal():
@@ -20,7 +21,9 @@ def test_extract_brief_sections_minimal():
     assert result["title"] == "Brief extrait automatiquement"
     assert isinstance(result["objectives"], list)
     assert len(result["objectives"]) >= 2
-    assert result["internal_reformulation"].startswith("Reformulation automatique du problème")
+    assert result["internal_reformulation"].startswith(
+        "Reformulation automatique du problème"
+    )
     assert result["summary"].startswith("Résumé automatique des KPIs")
 
 

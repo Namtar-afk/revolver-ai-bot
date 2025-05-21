@@ -1,8 +1,9 @@
 import os
-import tempfile
 import shutil
-import pytest
+import tempfile
 from unittest.mock import patch
+
+import pytest
 
 from bot.slack_handler import handle_report_command
 
@@ -18,14 +19,18 @@ def test_handle_report_command_creates_file(tmp_path):
     output_path = tmp_path / "rapport_test.pptx"
 
     # Simule le comportement du sous-processus de génération
-    with patch("subprocess.run") as mock_run, \
-         patch("bot.slack_handler.client.files_upload") as mock_upload, \
-         patch("bot.slack_handler.client.chat_postMessage") as mock_msg:
+    with (
+        patch("subprocess.run") as mock_run,
+        patch("bot.slack_handler.client.files_upload") as mock_upload,
+        patch("bot.slack_handler.client.chat_postMessage") as mock_msg,
+    ):
 
         mock_run.return_value.returncode = 0
 
         command = DummyCommand(text=str(output_path), channel_id="#test")
-        msg = handle_report_command(ack=lambda: None, respond=lambda m: None, command=command)
+        msg = handle_report_command(
+            ack=lambda: None, respond=lambda m: None, command=command
+        )
 
         # Vérifie que le fichier est mentionné dans le message de retour
         assert output_path.name in msg

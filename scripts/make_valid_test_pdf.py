@@ -4,10 +4,13 @@ Génère un PDF multi-pages pour tester le parsing.
 Usage :
   python scripts/make_valid_test_pdf.py -i input.txt -o output.pdf [-p N]
 """
-import argparse, textwrap
+import argparse
+import textwrap
 from pathlib import Path
+
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
+
 
 def txt_to_multipage_pdf(txt: Path, pdf: Path, pages: int, margin=72, linewidth=85):
     lines = txt.read_text(encoding="utf-8").splitlines()
@@ -30,13 +33,19 @@ def txt_to_multipage_pdf(txt: Path, pdf: Path, pages: int, margin=72, linewidth=
     c.save()
     print(f"[OK] multi-page PDF généré : {pdf}")
 
+
 def main():
     p = argparse.ArgumentParser(description="Génère un PDF multi-pages pour tests.")
-    p.add_argument("-i","--input", required=True, type=Path, help="Fichier .txt source")
-    p.add_argument("-o","--output", required=True, type=Path, help="Fichier .pdf de sortie")
-    p.add_argument("-p","--pages", type=int, default=1, help="Nombre de pages")
+    p.add_argument(
+        "-i", "--input", required=True, type=Path, help="Fichier .txt source"
+    )
+    p.add_argument(
+        "-o", "--output", required=True, type=Path, help="Fichier .pdf de sortie"
+    )
+    p.add_argument("-p", "--pages", type=int, default=1, help="Nombre de pages")
     args = p.parse_args()
     txt_to_multipage_pdf(args.input, args.output, args.pages)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

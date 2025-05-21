@@ -1,6 +1,8 @@
-import os
 import csv
+import os
+
 import pytest
+
 from bot.monitoring import fetch_rss, save_to_csv
 
 
@@ -32,4 +34,3 @@ def test_save_to_csv(tmp_path):
     assert len(rows) == 2, "Le nombre de lignes est incorrect"
     assert rows[0]["a"] == "1", "La première valeur de 'a' est incorrecte"
     assert rows[1]["b"] == "4", "La deuxième valeur de 'b' est incorrecte"
-

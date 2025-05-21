@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
+import argparse
 import os
+import subprocess
 import sys
 import tempfile
-import subprocess
-import argparse
-import requests
 import time
+
+import requests
 from slack_sdk import WebClient
+
+from bot.orchestrator import process_brief, run_analyse, run_veille
 from utils.logger import logger
-from bot.orchestrator import process_brief, run_veille, run_analyse
 
 # ----------------------------------------------------------------------------
 # Configuration
 # ----------------------------------------------------------------------------
 # Initialize Slack client for file uploads and messages
 client = WebClient(token=os.getenv("SLACK_BOT_TOKEN", ""))
+
 
 # ----------------------------------------------------------------------------
 # CLI Functions (exportable and testable)
@@ -33,6 +36,7 @@ def handle_veille_command() -> str:
         logger.error(f"[CLI] Échec de la veille : {e}")
         return f"❌ Erreur veille : {e}"
 
+
 def handle_analyse_command() -> str:
     """
     Lance l'analyse des items de veille et retourne un message de confirmation.
@@ -45,6 +49,7 @@ def handle_analyse_command() -> str:
     except Exception as e:
         logger.error(f"[CLI] Échec de l’analyse : {e}")
         return f"❌ Erreur analyse : {e}"
+
 
 def simulate_upload() -> None:
     """
@@ -60,8 +65,10 @@ def simulate_upload() -> None:
     print("\n=== Résultat de l’analyse CLI ===\n")
     print(sections)
 
+
 # Alias for backward compatibility in tests
 simulate_slack_upload = simulate_upload
+
 
 # ----------------------------------------------------------------------------
 # HTTP Slack Events Handler (FastAPI integration)
@@ -92,7 +99,9 @@ def handle_slack_event(payload: dict) -> dict:
                 continue
             try:
                 url = f.get("url_private_download")
-                headers = {"Authorization": f"Bearer {os.getenv('SLACK_BOT_TOKEN', '')}"}
+                headers = {
+                    "Authorization": f"Bearer {os.getenv('SLACK_BOT_TOKEN', '')}"
+                }
                 with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                     tmp.write(requests.get(url, headers=headers).content)
                     pdf_path = tmp.name
@@ -103,6 +112,7 @@ def handle_slack_event(payload: dict) -> dict:
                 return {"text": f"❌ Erreur analyse PDF : {e}"}
     # Accusé de réception par défaut
     return {"status": "ok"}
+
 
 # ----------------------------------------------------------------------------
 # Slack Bot Socket Mode (réel ou fallback CLI)
@@ -118,24 +128,29 @@ def handle_report_command(ack, respond, command) -> str:
     output_path = os.path.abspath(output)
     logger.info(f"[Slack] Génération rapport : {script_path} → {output_path}")
     try:
-        subprocess.run([sys.executable, script_path, "--report", output_path], check=True)
+        subprocess.run(
+            [sys.executable, script_path, "--report", output_path], check=True
+        )
     except subprocess.CalledProcessError as e:
-        logger.warning(f"[Slack] Erreur subprocess (code {e.returncode}) → fichier vide créé")
+        logger.warning(
+            f"[Slack] Erreur subprocess (code {e.returncode}) → fichier vide créé"
+        )
         open(output_path, "wb").close()
     try:
         client.files_upload(
             channels=getattr(command, "channel_id", "#general"),
             file=output_path,
-            filename=os.path.basename(output_path)
+            filename=os.path.basename(output_path),
         )
         client.chat_postMessage(
             channel=getattr(command, "channel_id", "#general"),
-            text=f"📊 Rapport généré : {output_path}"
+            text=f"📊 Rapport généré : {output_path}",
         )
     except Exception as e:
         logger.error(f"[Slack] Upload échoué : {e}")
         return f"❌ Échec de l’upload : {e}"
     return f"📊 Rapport généré : {output_path}"
+
 
 def start_slack_listener():
     """
@@ -170,12 +185,15 @@ def start_slack_listener():
     logger.info("[Slack] SocketModeHandler démarré.")
     SocketModeHandler(app, app_token).start()
 
+
 # ----------------------------------------------------------------------------
 # Mode CLI principal
 # ----------------------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Slack bot CLI")
-    parser.add_argument("--simulate", action="store_true", help="Simule un upload PDF Slack en CLI")
+    parser.add_argument(
+        "--simulate", action="store_true", help="Simule un upload PDF Slack en CLI"
+    )
     parser.add_argument("--veille", action="store_true", help="Lance la veille en CLI")
     parser.add_argument("--analyse", action="store_true", help="Lance l’analyse en CLI")
     args = parser.parse_args()
@@ -188,6 +206,7 @@ def main():
         print(handle_analyse_command())
     else:
         start_slack_listener()
+
 
 if __name__ == "__main__":
     main()

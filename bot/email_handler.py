@@ -5,11 +5,12 @@ import os
 import shutil
 from pathlib import Path
 
-from utils.logger import logger
 from bot.orchestrator import process_brief
+from utils.logger import logger
 
 # Répertoire d’inbox (modifiable via variable d’environnement INBOX_DIR)
 INBOX_DIR = os.getenv("INBOX_DIR", "inbox")
+
 
 def handle_inbox():
     """
@@ -22,7 +23,7 @@ def handle_inbox():
         return
 
     for pdf_path in inbox.iterdir():
-        if pdf_path.suffix.lower() != '.pdf':
+        if pdf_path.suffix.lower() != ".pdf":
             continue
 
         logger.info(f"[Email] Traitement du fichier : {pdf_path}")
@@ -38,6 +39,7 @@ def handle_inbox():
             processed = pdf_path.with_suffix(pdf_path.suffix + ".processed")
             shutil.move(str(pdf_path), str(processed))
             logger.info(f"[Email] Fichier déplacé en {processed}")
+
 
 if __name__ == "__main__":
     handle_inbox()

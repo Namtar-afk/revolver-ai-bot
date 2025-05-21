@@ -1,6 +1,8 @@
-import pdfplumber
 from pathlib import Path
 from typing import Optional
+
+import pdfplumber
+
 
 def extract_text_from_pdf(file_path: str) -> Optional[str]:
     try:

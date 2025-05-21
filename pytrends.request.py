@@ -1,7 +1,9 @@
 # bot/monitoring.py  (ou utils/patches.py si tu préfères isoler)
-import pandas as pd
-from contextlib import contextmanager
 import warnings
+from contextlib import contextmanager
+
+import pandas as pd
+
 
 @contextmanager
 def silence_pytrends_futurewarning():
@@ -14,7 +16,7 @@ def silence_pytrends_futurewarning():
         )
         yield
 
+
 # usage dans la fonction qui appelle pytrends
 with silence_pytrends_futurewarning():
     df = pytrends.interest_over_time()
-

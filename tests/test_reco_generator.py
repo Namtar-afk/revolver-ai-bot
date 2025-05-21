@@ -1,11 +1,8 @@
 import pytest
-from reco.generator import (
-    generate_insights,
-    generate_kpis,
-    generate_executive_summary,
-    generate_recommendation,
-)
-from reco.models import BriefReminder, TrendItem, DeckData, Idea
+
+from reco.generator import (generate_executive_summary, generate_insights,
+                            generate_kpis, generate_recommendation)
+from reco.models import BriefReminder, DeckData, Idea, TrendItem
 
 
 @pytest.fixture
@@ -40,8 +37,7 @@ def patch_env(monkeypatch):
 @pytest.fixture(autouse=True)
 def mock_llm(monkeypatch):
     monkeypatch.setattr(
-        "reco.generator._call_llm",
-        lambda path, ctx: "- Insight 1\n- Insight 2"
+        "reco.generator._call_llm", lambda path, ctx: "- Insight 1\n- Insight 2"
     )
 
 

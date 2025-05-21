@@ -17,3 +17,6 @@ python-dotenv>=1.0.1
 
 # OpenAI mocking (optionnel)
 pytest-mock>=3.12.0
+fpdf>=1.7.2
+
+trio

@@ -11,7 +11,7 @@ def test_cli_report(tmp_path):
     res = subprocess.run(
         ["python", "run_parser.py", "--report", str(out)],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     print("\n[STDOUT]\n", res.stdout)

@@ -15,10 +15,11 @@ import argparse
 import textwrap
 from pathlib import Path
 
-from reportlab.lib.pagesizes import LETTER, A4
-from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4, LETTER
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+
 
 def register_font(font_path: Path | None, name: str = "CustomFont") -> str:
     """
@@ -36,13 +37,14 @@ def register_font(font_path: Path | None, name: str = "CustomFont") -> str:
     # Helvetica, Times-Roman, Courier sont disponibles par défaut
     return "Helvetica"
 
+
 def txt_to_pdf(
     input_path: Path,
     output_path: Path,
     pagesize,
     margin: int,
     linewidth: int,
-    font_name: str
+    font_name: str,
 ):
     text = input_path.read_text(encoding="utf-8")
     c = canvas.Canvas(str(output_path), pagesize=pagesize)
@@ -68,22 +70,28 @@ def txt_to_pdf(
 
     c.save()
 
+
 def main():
     p = argparse.ArgumentParser(
         description="Génère un PDF paginé à partir d'un .txt (UTF-8)."
     )
-    p.add_argument("-i", "--input",  type=Path, required=True,
-                   help="Fichier .txt source (UTF‑8)")
-    p.add_argument("-o", "--output", type=Path, required=True,
-                   help="PDF de sortie")
-    p.add_argument("--font", type=Path,
-                   help="(Optionnel) Chemin vers une police .ttf Unicode")
-    p.add_argument("--pagesize", choices=["LETTER","A4"], default="LETTER",
-                   help="Format de page (LETTER ou A4)")
-    p.add_argument("--margin",    type=int, default=72,
-                   help="Marge en points (72 = 1 pouce)")
-    p.add_argument("--linewidth", type=int, default=85,
-                   help="Max caractères par ligne")
+    p.add_argument(
+        "-i", "--input", type=Path, required=True, help="Fichier .txt source (UTF‑8)"
+    )
+    p.add_argument("-o", "--output", type=Path, required=True, help="PDF de sortie")
+    p.add_argument(
+        "--font", type=Path, help="(Optionnel) Chemin vers une police .ttf Unicode"
+    )
+    p.add_argument(
+        "--pagesize",
+        choices=["LETTER", "A4"],
+        default="LETTER",
+        help="Format de page (LETTER ou A4)",
+    )
+    p.add_argument(
+        "--margin", type=int, default=72, help="Marge en points (72 = 1 pouce)"
+    )
+    p.add_argument("--linewidth", type=int, default=85, help="Max caractères par ligne")
     args = p.parse_args()
 
     font_name = register_font(args.font, "CustomFont")
@@ -95,9 +103,10 @@ def main():
         pagesize=pagesize,
         margin=args.margin,
         linewidth=args.linewidth,
-        font_name=font_name
+        font_name=font_name,
     )
     print(f"[OK] PDF généré : {args.output}")
+
 
 if __name__ == "__main__":
     main()
