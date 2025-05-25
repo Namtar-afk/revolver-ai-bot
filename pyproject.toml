@@ -50,3 +50,37 @@ filterwarnings = [
     "ignore:'count' is passed as positional argument"
 ]
 
+# ---- Configuration pour black/isort/flake8 ----
+
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    \.venv
+  | build
+  | dist
+  | \.git
+  | __pycache__
+  | \.approval_tests_temp
+)/
+'''
+
+[tool.isort]
+profile = "black"
+skip = [
+  ".venv",
+  "__pycache__",
+  ".approval_tests_temp"
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = [
+  ".venv",
+  "build",
+  "dist",
+  ".git",
+  "__pycache__",
+  ".approval_tests_temp"
+]

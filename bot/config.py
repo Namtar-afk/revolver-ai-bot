@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # Charge le .env situé dans le dossier secrets
 env_path = Path(__file__).parent.parent / "secrets" / ".env"
-load_dotenv(dotenv_path=env_path, override=False)
+load_dotenv(dotenv_path=env_path, override=True)
 
 
 class Settings:

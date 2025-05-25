@@ -11,8 +11,9 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
-from bot.orchestrator import \
-    process_brief  # veille, analyse, etc. restent dans bot/orchestrator
+from bot.orchestrator import (  # veille, analyse, etc. restent dans bot/orchestrator
+    process_brief,
+)
 
 
 class Settings(BaseSettings):

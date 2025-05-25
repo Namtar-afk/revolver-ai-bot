@@ -2,9 +2,13 @@ import os
 
 import pytest
 
-from reco.generator import (generate_executive_summary, generate_hypotheses,
-                            generate_insights, generate_kpis,
-                            generate_recommendation)
+from reco.generator import (
+    generate_executive_summary,
+    generate_hypotheses,
+    generate_insights,
+    generate_kpis,
+    generate_recommendation,
+)
 from reco.models import BriefReminder, TrendItem
 
 

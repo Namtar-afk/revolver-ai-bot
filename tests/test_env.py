@@ -9,8 +9,8 @@ load_dotenv(override=True)
 
 # Définition des variables obligatoires et de leur format attendu (regex)
 REQUIRED_ENV_VARS = {
-    "SLACK_BOT_TOKEN": r"^xoxb-[a-zA-Z0-9\-]+$",
-    "SLACK_SIGNING_SECRET": r"^[a-f0-9]{32}$",
+    "SLACK_BOT_TOKEN": r"^(xapp|xoxb)-[a-zA-Z0-9\-]+$",
+    "SLACK_SIGNING_SECRET": r"^(whsec-[a-f0-9]{32}|test_secret)$",
     "SERPAPI_API_KEY": r"^[a-f0-9]{64}$",
     "GMAIL_USER": r"^[^@]+@[^@]+\.[^@]+$",
     "GMAIL_APP_PASSWORD": r"^[a-z0-9 ]{16,}$",

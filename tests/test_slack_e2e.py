@@ -1,5 +1,9 @@
+import hashlib
+import hmac
 import json
-from unittest.mock import MagicMock
+import os
+import time
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,10 +13,21 @@ from api.main import app
 client = TestClient(app)
 
 
+def slack_signature(secret, body, timestamp=None):
+    if timestamp is None:
+        timestamp = str(int(time.time()))
+    basestring = f"v0:{timestamp}:{body}"
+    my_sig = (
+        "v0="
+        + hmac.new(secret.encode(), basestring.encode(), hashlib.sha256).hexdigest()
+    )
+    return my_sig, timestamp
+
+
 @pytest.fixture
 def mock_handle_event(monkeypatch):
-    mock = MagicMock()
-    monkeypatch.setattr("api.main.handle_event", mock)
+    mock = AsyncMock()
+    monkeypatch.setattr("api.slack_routes.handle_event", mock)
     return mock
 
 
@@ -36,13 +51,16 @@ def test_slack_events_file_and_message(mock_handle_event):
         "event_id": "Ev123",
         "event_time": 1234567890,
     }
+    body = json.dumps(payload)
+    secret = os.environ.get("SLACK_SIGNING_SECRET", "test")
+    sig, ts = slack_signature(secret, body)
     response = client.post(
         "/slack/events",
-        json=payload,
+        data=body,
         headers={
             "Content-Type": "application/json",
-            "X-Slack-Signature": "v0=invalid",
-            "X-Slack-Request-Timestamp": "1234567890",
+            "X-Slack-Signature": sig,
+            "X-Slack-Request-Timestamp": ts,
         },
     )
     assert response.status_code == 200
@@ -58,7 +76,7 @@ def test_slack_events_url_verification():
     }
     response = client.post(
         "/slack/events",
-        json=payload,  # ✅ correction ici
+        json=payload,
         headers={"Content-Type": "application/json"},
     )
     assert response.status_code == 200
@@ -76,13 +94,16 @@ def test_slack_events_message(mock_handle_event):
         "event_id": "Ev123",
         "event_time": 1234567890,
     }
+    body = json.dumps(payload)
+    secret = os.environ.get("SLACK_SIGNING_SECRET", "test")
+    sig, ts = slack_signature(secret, body)
     response = client.post(
         "/slack/events",
-        json=payload,  # ✅ correction ici aussi
+        data=body,
         headers={
             "Content-Type": "application/json",
-            "X-Slack-Signature": "v0=invalid",
-            "X-Slack-Request-Timestamp": "1234567890",
+            "X-Slack-Signature": sig,
+            "X-Slack-Request-Timestamp": ts,
         },
     )
     assert response.status_code == 200

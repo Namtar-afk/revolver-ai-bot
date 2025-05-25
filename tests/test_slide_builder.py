@@ -5,8 +5,15 @@ import pytest
 from pptx import Presentation
 
 from pptx_generator.slide_builder import build_ppt
-from reco.models import (BrandOverview, BriefReminder, BudgetItem, DeckData,
-                         Idea, Milestone, StateOfPlaySection)
+from reco.models import (
+    BrandOverview,
+    BriefReminder,
+    BudgetItem,
+    DeckData,
+    Idea,
+    Milestone,
+    StateOfPlaySection,
+)
 
 
 @pytest.fixture

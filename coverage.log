@@ -1,0 +1,149 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.10.8, pytest-8.3.5, pluggy-1.5.0
+rootdir: /Users/romeocavazza/Desktop/revolver-ai-bot
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.9.0, env-1.1.5, approvaltests-14.5.0, cov-6.1.1
+collected 50 items
+
+tests/test_api.py [OK] PDF généré (extractible) : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/static1/brief_static.pdf
+2025-05-21 12:38:48 - INFO - [orchestrator] Lecture du fichier : /var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/tmproattufy.pdf
+2025-05-21 12:38:48 - WARNING - [orchestrator] Validation JSON partielle : 'problème' is a required property
+...
+tests/test_cli_report.py 
+[STDOUT]
+ [OK] PPT généré : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_cli_report0/r.pptx
+
+
+[STDERR]
+ [INFO] Lecture du brief : /Users/romeocavazza/Desktop/revolver-ai-bot/tests/samples/brief_sample.pdf
+CropBox missing from /Page, defaulting to MediaBox
+CropBox missing from /Page, defaulting to MediaBox
+[WARN] Échec de validation JSON : 'titre' is a required property
+
+Failed validating 'required' in schema:
+    {'$schema': 'http://json-schema.org/draft-07/schema#',
+     'title': 'Brief Schema',
+     'type': 'object',
+     'properties': {'titre': {'type': 'string',
+                              'minLength': 1,
+                              'description': 'Le titre du brief'},
+                    'problème': {'type': 'string',
+                                 'minLength': 1,
+                                 'description': 'Description du problème à '
+                                                'résoudre'},
+                    'objectifs': {'type': 'string',
+                                  'minLength': 1,
+                                  'description': 'Les objectifs à '
+                                                 'atteindre'},
+                    'kpis': {'type': 'array',
+                             'description': 'Liste des KPIs mesurables',
+                             'items': {'type': 'string', 'minLength': 1},
+                             'minItems': 1}},
+     'required': ['titre', 'problème', 'objectifs', 'kpis'],
+     'additionalProperties': False}
+
+On instance:
+    {'title': 'Brief extrait automatiquement',
+     'objectives': ['Test statique.'],
+     'internal_reformulation': 'Reformulation automatique du problème : '
+                               'Brief statique pour les tests '
+                               'd’intégration.',
+     'summary': 'Résumé automatique des KPIs : - TEST1'}
+[veille] Google Trends indisponible (The request failed: Google returned a response with code 429), skip.
+[WARN] Échec de génération du deck : 'StateOfPlaySection' object has no attribute 'date'
+
+.
+tests/test_env.py [✅] Toutes les variables d’environnement sont définies et valides.
+.
+tests/test_extract_pdf.py [OK] PDF généré : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_pdf_text_extraction_gener0/b.pdf
+.[OK] multi-page PDF généré : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_pdf_text_extraction_make_0/b.pdf
+.
+tests/test_extract_text_from_pdf_schema.py ..
+tests/test_generator_ideas_timeline_budget.py ...
+tests/test_generator_llm.py .....
+tests/test_generator_signatures.py .....
+tests/test_generator_stubs.py .....
+tests/test_integration.py .2025-05-21 12:38:52 - INFO - [CLI] Simulation d'un upload PDF Slack…
+2025-05-21 12:38:52 - INFO - [orchestrator] Lecture du fichier : tests/samples/brief_sample.pdf
+2025-05-21 12:38:52 - WARNING - [orchestrator] Validation JSON partielle : 'problème' is a required property
+.2025-05-21 12:38:52 - INFO - [Email] Traitement du fichier : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_email_handler0/inbox/brief1.pdf
+2025-05-21 12:38:52 - INFO - [orchestrator] Lecture du fichier : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_email_handler0/inbox/brief1.pdf
+2025-05-21 12:38:52 - WARNING - [orchestrator] Validation JSON partielle : 'problème' is a required property
+2025-05-21 12:38:52 - INFO - [Email] Fichier déplacé en /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_email_handler0/inbox/brief1.pdf.processed
+.
+tests/test_monitoring.py ..
+tests/test_nlp_utils.py ..
+tests/test_parser.py [OK] PDF généré (extractible) : /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/dynamic1/brief.pdf
+.
+tests/test_reco_generator.py ....
+tests/test_slack_commands.py 2025-05-21 12:38:53 - INFO - [veille] Lancement de la veille média…
+2025-05-21 12:38:54 - INFO - [veille] Sauvegardé 1 items dans /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_handle_veille_command0/veille.csv
+2025-05-21 12:38:54 - INFO - [CLI] Veille : 1 items enregistrés dans /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_handle_veille_command0/veille.csv
+..
+tests/test_slack_e2e.py ...
+tests/test_slack_handler.py 2025-05-21 12:38:54 - INFO - [CLI] Simulation d'un upload PDF Slack…
+2025-05-21 12:38:54 - INFO - [orchestrator] Lecture du fichier : tests/samples/brief_sample.pdf
+2025-05-21 12:38:54 - WARNING - [orchestrator] Validation JSON partielle : 'problème' is a required property
+.2025-05-21 12:38:54 - INFO - [veille] Lancement de la veille média…
+2025-05-21 12:38:56 - INFO - [veille] Sauvegardé 3 items dans /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_handle_veille_command1/veille.csv
+2025-05-21 12:38:56 - INFO - [CLI] Veille : 3 items enregistrés dans /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_handle_veille_command1/veille.csv
+..
+tests/test_slack_report.py 2025-05-21 12:38:56 - INFO - [Slack] Génération rapport : /Users/romeocavazza/Desktop/revolver-ai-bot/run_parser.py → /private/var/folders/2s/1ks4zn793b39xh0gw40ghr6r0000gn/T/pytest-of-romeocavazza/pytest-82/test_handle_report_command_cre0/rapport_test.pptx
+.
+tests/test_slack_server.py .
+tests/test_slide_builder.py .
+
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.10.8-final-0 _______________
+
+Name                                            Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------------------
+api/__init__.py                                     0      0   100%
+api/main.py                                        40      4    90%   14, 32-33, 67
+api/slack_server.py                                42     21    50%   44-57, 70-84
+bot/analysis.py                                     4      1    75%   8
+bot/email_handler.py                               27      6    78%   22-23, 27, 36-37, 45
+bot/monitoring.py                                  56      4    93%   66-67, 86-87
+bot/orchestrator.py                                81     38    53%   45-46, 54, 76-93, 100-101, 115-146, 150
+bot/slack_handler.py                              135     88    35%   34-36, 43-45, 51-52, 78-119, 139-143, 155-157, 166-207, 216-231
+parser/__init__.py                                  0      0   100%
+parser/nlp_utils.py                                23      0   100%
+parser/pdf_parser.py                               10      3    70%   11-13
+pptx_generator/__init__.py                          0      0   100%
+pptx_generator/slide_builder.py                    53      2    96%   52-53
+reco/__init__.py                                    0      0   100%
+reco/generator.py                                  56      8    86%   16-18, 25-33
+reco/models.py                                     43      0   100%
+run_parser.py                                      63     11    83%   36, 58-60, 76-78, 107-110
+scripts/generate_brief_pdf.py                      46      9    80%   45-47, 52-54, 107-109
+scripts/generate_sample_pdf.py                     53     13    75%   30-36, 59-61, 67-69
+scripts/make_valid_test_pdf.py                     32      3    91%   28-30
+tests/__init__.py                                   0      0   100%
+tests/conftest.py                                  25      1    96%   11
+tests/test_api.py                                  25      0   100%
+tests/test_cli_analyse.py                         117    100    15%   16-19, 22-25, 33-39, 44-48, 53-58, 64-83, 88-144, 148-173
+tests/test_cli_report.py                            9      0   100%
+tests/test_env.py                                  25     10    60%   33, 35, 38-46
+tests/test_extract_pdf.py                          15      0   100%
+tests/test_extract_text_from_pdf_schema.py         14      0   100%
+tests/test_generator_ideas_timeline_budget.py      24      3    88%   27, 34, 41
+tests/test_generator_llm.py                        39      0   100%
+tests/test_generator_signatures.py                 17      0   100%
+tests/test_generator_stubs.py                      37      0   100%
+tests/test_integration.py                          28      0   100%
+tests/test_monitoring.py                           20      0   100%
+tests/test_nlp_utils.py                            18      0   100%
+tests/test_parser.py                               23      3    87%   35-38
+tests/test_reco_generator.py                       36      0   100%
+tests/test_slack_commands.py                       14      0   100%
+tests/test_slack_e2e.py                            26      0   100%
+tests/test_slack_handler.py                        20      0   100%
+tests/test_slack_report.py                         20      0   100%
+tests/test_slack_server.py                          7      0   100%
+tests/test_slide_builder.py                        19      0   100%
+utils/__init__.py                                   0      0   100%
+utils/logger.py                                    10      0   100%
+-----------------------------------------------------------------------------
+TOTAL                                            1352    328    76%
+============================= 50 passed in 17.57s ==============================

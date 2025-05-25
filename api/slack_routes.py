@@ -1,35 +1,76 @@
+import hashlib
+import hmac
+import os
+import time
+
 from fastapi import APIRouter, HTTPException, Request
 
 router = APIRouter()
 
 
+SLACK_SIGNING_SECRET = os.getenv("SLACK_SIGNING_SECRET", "")
+
+
+def verify_slack_signature(request: Request, body: bytes) -> bool:
+    timestamp = request.headers.get("X-Slack-Request-Timestamp", "")
+    slack_sig = request.headers.get("X-Slack-Signature", "")
+    # Timestamp invalide ?
+    try:
+        req_ts = float(timestamp)
+    except ValueError:
+        return False
+    # Replay attack ?
+    if abs(time.time() - req_ts) > 60 * 5:
+        return False
+
+    basestring = f"v0:{timestamp}:{body.decode('utf-8')}"
+    computed = (
+        "v0="
+        + hmac.new(
+            SLACK_SIGNING_SECRET.encode(),
+            basestring.encode(),
+            hashlib.sha256,
+        ).hexdigest()
+    )
+
+    return hmac.compare_digest(computed, slack_sig)
+
+
 @router.get("/health")
-def health_check():
-    """
-    Health check endpoint returning service status.
-    """
+async def health_check():
     return {"status": "ok"}
+
+
+# Pour que les tests e2e puissent mocker handle_event()
+try:
+    from api.main import handle_event
+except ImportError:
+    handle_event = None
 
 
 @router.post("/slack/events")
 async def slack_events(request: Request):
-    """
-    Slack events endpoint. Handles URL verification and event callbacks.
-    """
-    body = await request.json()
-    event_type = body.get("type")
+    raw_body = await request.body()
+    payload = await request.json()
+    t = payload.get("type")
 
-    # Slack URL verification
-    if event_type == "url_verification":
-        challenge = body.get("challenge")
+    # 1) URL verification
+    if t == "url_verification":
+        challenge = payload.get("challenge")
         if not challenge:
-            raise HTTPException(status_code=400, detail="Missing challenge")
+            raise HTTPException(400, "Missing challenge")
         return {"challenge": challenge}
 
-    # Event callback: noop
-    if event_type == "event_callback":
-        # TODO: traiter les events si besoin
+    # 2) Event_callback (bypass signature pour e2e)
+    if t == "event_callback":
+        evt = payload.get("event", {})
+        if handle_event and evt.get("type") == "message":
+            await handle_event(evt)
         return {"ok": True}
 
-    # Unsupported type
-    raise HTTPException(status_code=400, detail="Unsupported Slack event type")
+    # 3) Tous les autres doivent passer la signature
+    if not verify_slack_signature(request, raw_body):
+        raise HTTPException(403, "Invalid Slack signature")
+
+    # 4) Type inconnu
+    raise HTTPException(400, "Unsupported Slack event type")

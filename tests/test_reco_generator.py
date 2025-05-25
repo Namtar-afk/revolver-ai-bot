@@ -1,7 +1,11 @@
 import pytest
 
-from reco.generator import (generate_executive_summary, generate_insights,
-                            generate_kpis, generate_recommendation)
+from reco.generator import (
+    generate_executive_summary,
+    generate_insights,
+    generate_kpis,
+    generate_recommendation,
+)
 from reco.models import BriefReminder, DeckData, Idea, TrendItem
 
 

@@ -29,15 +29,15 @@ venv/
 .ipynb_checkpoints/
 
 # ========================
-# 📄 LaTeX
+# 📄 LaTeX (Si applicable)
 # ========================
-*.aux
-*.log
-*.out
-*.toc
-*.fls
-*.fdb_latexmk
-*.synctex.gz
+# *.aux
+# *.log
+# *.out
+# *.toc
+# *.fls
+# *.fdb_latexmk
+# *.synctex.gz
 
 # ========================
 # ✅ Tests & Coverage
@@ -53,26 +53,38 @@ htmlcov/
 site/
 
 # ========================
-# 🐳 Docker & Configs
+# 🐳 Docker & Configs Divers
 # ========================
-Dockerfile*
-docker-compose*.yml
+# Dockerfile* # Si tu veux ignorer tous les Dockerfiles, sinon précise (ex: Dockerfile.local)
+# docker-compose*.yml # Idem, si tu veux ignorer toutes les variations
 .ngrok.yml
-Procfile
-# Ne plus ignorer les .env à la racine
+# Procfile # Généralement commité, mais si c'est un Procfile local spécifique...
+
+# Fichiers de sortie ou temporaires
+out.pptx
 
 # ========================
-# 🗃️ Fichiers générés ou de test
+# 🗃️ Fichiers de données générés ou sensibles
 # ========================
-briefs/
-tests/samples/*.pdf
+# briefs/ # Si ce dossier contient des données sensibles ou générées non versionnables
+# tests/samples/*.pdf # Si les PDF de samples ne doivent pas être tous versionnés
+# data/veille.csv # Si ce fichier est généré et grand, ou contient des données non versionnables
 
 # ========================
 # 🔒 Secrets
 # ========================
+# Ignorer tous les fichiers dans le dossier /secrets/
 /secrets/*
-!/secrets/credential.json
-!/secrets/.env
+
+# MAIS ne PAS ignorer le fichier d'exemple ou les fichiers de configuration non sensibles
+# Si credential.json NE contient PAS de secrets, alors c'est OK de le dé-ignorer.
+# Sinon, il devrait aussi être ignoré (en enlevant la ligne !/secrets/credential.json).
+!/secrets/credential.json 
+
+# IMPORTANT : Le fichier .env dans secrets/ ne doit PAS être dé-ignoré s'il contient des secrets.
+# La ligne "!/secrets/.env" précédente a été supprimée.
+# Si tu as un fichier .env.example dans secrets/, tu peux le dé-ignorer :
+# !/secrets/.env.example
 
 # ========================
 # 🌍 Autres
@@ -82,4 +94,5 @@ tests/samples/*.pdf
 # ========================
 # Fichier d'environnement racine
 # ========================
+# Ignorer le fichier .env à la racine du projet s'il contient des secrets
 .env
