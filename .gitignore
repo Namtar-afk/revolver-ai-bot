@@ -96,3 +96,4 @@ out.pptx
 # ========================
 # Ignorer le fichier .env à la racine du projet s'il contient des secrets
 .env
+.python-version
