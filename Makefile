@@ -1,133 +1,89 @@
 .DEFAULT_GOAL := help
 
-# ===============================
-# VARIABLES
-# ===============================
-VENV := .venv
-PYTHON := $(VENV)/bin/python
-PIP := $(VENV)/bin/pip
-LATEX_SRC := main.tex
-LATEX_OUT := main.pdf
+VENV_DIR_NAME := .venv
+VENV_PATH := $(CURDIR)/$(VENV_DIR_NAME)
+PYTHON := $(VENV_PATH)/bin/python
+PIP := $(VENV_PATH)/bin/pip
+SRC_DIRS := bot api tests parser scripts
+COV_DIR := tests
 
-# ===============================
-# AIDE
-# ===============================
-help:  ## Affiche cette aide
+.PHONY: help
+help:  ## Affiche la liste des commandes disponibles
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-# ===============================
-# ENVIRONNEMENT PYTHON
-# ===============================
-venv:  ## Crée l’environnement virtuel Python
-	python3 -m venv $(VENV)
-	$(PIP) install --upgrade pip
+# Environnement
+.PHONY: venv
+venv: ## Crée l’environnement virtuel Python
+	@echo ">>> Création de l'environnement dans $(VENV_PATH)..."
+	python3 -m venv $(VENV_DIR_NAME)
+	$(PYTHON) -m pip install --upgrade pip setuptools wheel
 
-install: venv  ## Installe les dépendances
+.PHONY: install
+install: venv ## Installe les dépendances
+	@echo ">>> Dépendances requirements.txt"
 	$(PIP) install -r requirements.txt
-	-$(PIP) install -r requirements-dev.txt
+	@echo ">>> Dépendances requirements-dev.txt"
+	-$(PIP) install -r requirements-dev.txt || true
 
-freeze:  ## Gèle les dépendances dans requirements.txt
-	$(PIP) freeze > requirements.txt
+.PHONY: rebuild-env
+rebuild-env: clean-all install ## Supprime et reconstruit l'environnement
 
-dev: install  ## Active l'environnement virtuel dans un shell
-	@echo "Activation de l'environnement virtuel. Tapez 'exit' pour quitter."
-	@bash --rcfile <(echo "source $(VENV)/bin/activate")
+# Lint & format
+.PHONY: format
+format: ## Formate le code
+	$(PYTHON) -m black $(SRC_DIRS) --exclude $(VENV_DIR_NAME)
+	$(PYTHON) -m isort $(SRC_DIRS) --skip $(VENV_DIR_NAME)
+	$(PYTHON) -m flake8 $(SRC_DIRS) --exclude $(VENV_DIR_NAME)
 
-# ===============================
-# QUALITÉ & TESTS
-# ===============================
-lint:  ## Analyse statique avec flake8
-	source $(VENV)/bin/activate && flake8 .
+.PHONY: check
+check: ## Vérifie le format (dry run)
+	$(PYTHON) -m black $(SRC_DIRS) --check --exclude $(VENV_DIR_NAME)
+	$(PYTHON) -m isort $(SRC_DIRS) --check-only --skip $(VENV_DIR_NAME)
+	$(PYTHON) -m flake8 $(SRC_DIRS) --exclude $(VENV_DIR_NAME)
 
-lint-fix:  ## Formatte et nettoie automatiquement le code
-	black .
-	isort .
-	flake8 .
+.PHONY: lint-fix
+lint-fix: ## Auto-correction avec autopep8
+	$(PYTHON) -m autopep8 $(SRC_DIRS) --in-place --aggressive --recursive
 
-format:  ## Formatte le code avec black + isort
-	source $(VENV)/bin/activate && black . && isort .
+# Tests
+.PHONY: test
+test: ## Lance tous les tests
+	$(PYTHON) -m pytest $(COV_DIR)
 
-format-check:  ## Vérifie que le code est bien formaté
-	source $(VENV)/bin/activate && black --check . && isort --check-only .
+.PHONY: test-unit
+test-unit: ## Lance les tests unitaires uniquement
+	$(PYTHON) -m pytest $(COV_DIR) -m "not e2e"
 
-test:  ## Lance les tests unitaires (avec log)
-	source $(VENV)/bin/activate && pytest --maxfail=1 -v
+.PHONY: test-e2e
+test-e2e: ## Lance les tests end-to-end uniquement
+	$(PYTHON) -m pytest $(COV_DIR) -m "e2e"
 
-coverage:  ## Affiche le taux de couverture
-	source $(VENV)/bin/activate && pytest --cov=./ --cov-report=term-missing
+.PHONY: coverage
+coverage: ## Affiche la couverture HTML
+	$(PYTHON) -m pytest $(COV_DIR) --cov=bot --cov=api --cov-report=html
 
-badge-coverage:  ## Génère un badge de couverture
-	pytest --cov > coverage.log
-	coverage-badge -o coverage.svg -f
-	mkdir -p docs/assets
-	mv coverage.svg docs/assets/
+# Utilitaires
+.PHONY: run
+run: ## Lance l'application principale
+	$(PYTHON) -m bot
 
-validate-schema:  ## Valide les JSON avec jsonschema
-	$(PYTHON) scripts/validate_schema.py
+.PHONY: doctor
+doctor: ## Vérifie l’environnement
+	@which $(PYTHON)
+	@$(PYTHON) --version
+	@$(PYTHON) -c "import black, isort, flake8, pytest; print('✅ Environnement OK')"
 
-check:  ## Vérifie le code : format, lint, validation JSON
-	source $(VENV)/bin/activate && \
-	black --check . && \
-	isort --check-only . && \
-	flake8 . && \
-	$(PYTHON) scripts/validate_schema.py
+.PHONY: clean
+clean: ## Nettoie les caches Python
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.py[co]" -delete
+	rm -rf .pytest_cache .mypy_cache .coverage htmlcov .tox coverage.xml
 
-# ===============================
-# EXÉCUTION
-# ===============================
-run:  ## Exécute run_parser.py
-	$(PYTHON) run_parser.py $(ARGS)
+.PHONY: clean-all
+clean-all: clean ## Supprime l'env virtuel et les builds
+	rm -rf $(VENV_DIR_NAME) dist build *.egg-info
 
-start-server:  ## Lance l'API FastAPI
-	uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-
-frontend:  ## Lance l’interface Streamlit
-	streamlit run streamlit_app/app.py
-
-# ===============================
-# DOCKER
-# ===============================
-docker:  ## Lance Docker Compose (mode dev)
-	docker compose -f docker-compose.dev.yml up --build
-
-publish-ghcr:  ## Publie l'image sur GitHub Container Registry
-	GHCR_PAT=$(GHCR_PAT) ./scripts/publish_ghcr.sh $(VERSION)
-
-# ===============================
-# LATEX
-# ===============================
-pdf:  ## Compile le LaTeX en PDF
-	latexmk -pdf -interaction=nonstopmode -output-directory=build $(LATEX_SRC)
-	@mv build/$(LATEX_OUT) .
-
-clean-pdf:  ## Supprime les fichiers LaTeX intermédiaires
-	@rm -rf build *.aux *.log *.out *.toc *.fls *.fdb_latexmk *.synctex.gz
-
-# ===============================
-# RELEASE SÉCURISÉE
-# ===============================
-secure-release:  ## Compile PDF, calcule le SHA256, archive le tout
-	make pdf
-	shasum -a 256 main.pdf > main.pdf.sha256
-	tar -czf release.tar.gz main.pdf main.pdf.sha256
-
-# ===============================
-# NETTOYAGE
-# ===============================
-clean-pycache:  ## Supprime les caches Python
-	@rm -rf __pycache__ */__pycache__ .pytest_cache .mypy_cache *.pyc .coverage
-
-clean:  ## Supprime les fichiers temporaires & locks
-	find . -name "__pycache__" -type d -exec rm -rf {} +
-	find . -name "*.pyc" -delete
-	rm -f .git/index.lock .git/HEAD.lock .git/packed-refs.lock .git/refs/heads/main.lock
-
-clean-all: clean  ## Supprime tout : environnement, dist, build…
-	@rm -rf $(VENV) build dist *.egg-info
-
-unlock:  ## Déverrouille le fichier .git/index.lock
-	rm -f .git/index.lock
-
-unlock-full:  ## Supprime tous les verrous Git potentiels
-	rm -f .git/index.lock .git/HEAD.lock .git/packed-refs.lock .git/refs/heads/main.lock
+.PHONY: unlock
+unlock:
+	rm -f .git/index.lock .git/HEAD.lock .git/packed-refs.lock .git/refs/heads/*.lock

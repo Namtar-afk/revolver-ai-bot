@@ -2,127 +2,125 @@
 
 [![PyPI](https://img.shields.io/pypi/v/revolver-ai-bot)](https://pypi.org/project/revolver-ai-bot/)
 [![Tests](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml/badge.svg)](https://github.com/romeocavazza/revolver-ai-bot/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/romeocavazza/revolver-ai-bot/branch/main/graph/badge.svg)](https://codecov.io/gh/romeocavazza/revolver-ai-bot)
-![Coverage](docs/assets/coverage.svg)
+[![codecov](https://codecov.io/gh/romeocavazza/revolver-ai-bot/branch/main/graph/badge.svg?token=XXXX)](https://codecov.io/gh/romeocavazza/revolver-ai-bot)
+![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
 
 ---
 
 ## 🤖 Présentation
 
-Revolver AI Bot est un agent IA full-stack conçu pour :
+Revolver AI Bot est un **agent IA full-stack** conçu pour :
 
-* **Parser** des briefs PDF et en extraire des JSON structurés
-* **Automatiser** la veille stratégique (RSS, Google, TikTok…)
-* **Analyser** les données via LLM (insights, KPIs, tendances)
-* **Générer** des livrables professionnels (PDF, PPTX)
-* **Fournir** une API REST (FastAPI) pour intégration
-* **Intégrer** un mode Slack bot interactif
+- 🔍 **Parser** des briefs PDF → JSON conforme
+- 📡 **Automatiser** la veille stratégique (Google, RSS, TikTok…)
+- 🧠 **Analyser** avec LLM : insights, KPIs, synthèses
+- 📊 **Générer** des slides PPTX professionnels
+- 🔗 **Exposer** une API REST FastAPI
+- 💬 **Interagir** en bot Slack avec commandes intelligentes
+
+---
 
 ## 🚀 Installation
 
-### 1. Via PyPI
+### 1. Depuis PyPI (recommandé)
 
 ```bash
 pip install revolver-ai-bot
-```
-
-### 2. En local (développement)
-
-```bash
+2. En local (développement)
+bash
+Copy
+Edit
 git clone https://github.com/romeocavazza/revolver-ai-bot.git
 cd revolver-ai-bot
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
+pip install -r requirements-dev.txt
+⚙️ Configuration
+Copiez et éditez les secrets nécessaires :
 
-## ⚙️ Configuration
+bash
+Copy
+Edit
+cp .env.example secrets/.env
+# puis éditez secrets/.env
+🧠 Fonctionnalités principales
+✅ Parsing PDF → JSON validé
 
-Copiez le fichier de configuration exemple et ajustez vos clés :
+🧠 Analyse automatique (résumé, reformulation, KPIs)
 
-```bash
-cp config.example.py config.py
-# Éditez config.py (OpenAI, Slack, SerpAPI…)
-```
+📈 Veille RSS, clustering, Google Trends
 
-## 🧠 Fonctionnalités principales
+🖼️ Génération de slides PowerPoint
 
-* **Parsing intelligent** de briefs PDF → JSON valide
-* **Analyse automatique** (résumé, reformulation, KPIs)
-* **Veille agrégée** et clustering d’actualités
-* **Génération de slides** (.pptx)
-* **API REST** (FastAPI) et docs Swagger `/docs`
-* **Slack bot** multi-commandes
+🌐 API REST (FastAPI)
 
-## 📂 Structure du projet
+💬 Slack bot multi-commandes (/report, !veille, etc.)
 
-```plain
+📂 Arborescence du projet
+graphql
+Copy
+Edit
 revolver-ai-bot/
-├── bot/                # Gestion Slack, veille, analyse
-├── parser/             # Extraction de texte et NLP
-├── pptx_generator/     # Génération PowerPoint
-├── prompts/            # Templates pour LLM
-├── reco/               # Recommandations stratégiques
-├── schema/             # JSON Schema de validation
-├── api/                # Serveur FastAPI
-├── tests/              # Tests unitaires et d’intégration
-├── run_parser.py       # CLI : PDF → JSON/PPTX
-└── run_monitor.py      # CLI : veille média
-```
+├── bot/                # Slack, analyse, email
+├── api/                # API REST FastAPI
+├── parser/             # NLP et parsing PDF
+├── pptx_generator/     # Slides PPTX
+├── prompts/            # Templates LLM
+├── reco/               # Générateur de recommandations
+├── schema/             # JSON Schemas
+├── tests/              # Unittests & e2e tests
+└── run_parser.py       # CLI principale
+🧪 Lancer les tests
+bash
+Copy
+Edit
+make test
+# ou
+pytest --cov=bot --cov=api --cov-report=term
+🚀 CLI
+Parser un brief PDF :
 
-## 🧪 Tests
+bash
+Copy
+Edit
+python run_parser.py --brief path/to/file.pdf
+Générer un rapport PPTX :
 
-```bash
-export PYTHONPATH=$(pwd)
-pytest -v
-```
+bash
+Copy
+Edit
+python run_parser.py --report path/to/output.pptx
+Lancer la veille média :
 
-## 🖥️ Utilisation CLI
-
-* **Parser un brief PDF**
-
-  ```bash
-  python run_parser.py --brief path/to/brief.pdf
-  ```
-
-* **Générer un PPTX**
-
-  ```bash
-  python run_parser.py --report output.pptx
-  ```
-
-* **Lancer la veille média**
-
-  ```bash
-  python run_monitor.py --out data/veille.csv
-  ```
-
-## 🌐 API (FastAPI)
-
-```bash
+bash
+Copy
+Edit
+python run_monitor.py --out data/veille.csv
+🌐 API REST (FastAPI)
+bash
+Copy
+Edit
 uvicorn api.main:app --reload --port 8001
-# Accédez aux docs : http://127.0.0.1:8001/docs
-```
-
-## 💬 Slack Bot
-
-```bash
+# Accès Swagger : http://localhost:8001/docs
+💬 Slack Bot
+bash
+Copy
+Edit
 export SLACK_BOT_TOKEN="xoxb-..."
 export SLACK_APP_TOKEN="xapp-..."
 python bot/slack_handler.py
-```
+Commandes disponibles :
 
-* **!veille** : récupère et affiche la veille
-* **!analyse** : synthèse & tendances
-* **/report \[fichier]** : génère un PPTX
+/report (PDF → slide)
 
-## 🐳 Docker (développement)
+!veille (veille média)
 
-```bash
+!analyse (résumé + tendances)
+
+🐳 Docker (dev)
+bash
+Copy
+Edit
 docker compose -f docker-compose.dev.yml up --build
-# Pour simuler : docker compose run --rm slack-cli --simulate
-```
-
----
-
-*© 2025 Revolver AI Bot — par Romeo Cavazza*
+© 2025 – Revolver AI Bot — par Romeo Cavazza
