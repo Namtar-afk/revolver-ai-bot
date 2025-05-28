@@ -1,0 +1,67 @@
+# Core
+python-dotenv
+requests
+pydantic>=2.0
+python-multipart
+
+# Slack & Web server
+slack_sdk
+fastapi
+uvicorn[standard]
+
+# Async: Trio & Async Tools
+trio==0.25.0
+anyio[trio]
+httpx[http2]
+
+# PDF parsing & generation
+pdfminer.six>=20221105
+reportlab>=3.6
+
+# PowerPoint generation
+python-pptx
+
+# JSON Schema validation
+jsonschema>=4.0.0
+
+# LLM / NLP (OpenAI & Tokenization)
+openai>=1.0
+tiktoken
+
+# CSV / Monitoring / Data
+pandas
+feedparser
+
+# CLI & Scripting
+typer[all]
+click
+
+# Testing
+pytest>=8.0
+pytest-cov
+pytest-mock
+pytest-trio
+pytest-asyncio
+
+# Coverage + HTML report
+coverage
+pytest-html
+
+# Dev tools: formatters, linters
+black
+flake8
+isort
+pre-commit
+
+# Typing / Static analysis
+mypy
+types-requests
+types-PyYAML
+types-jsonschema
+
+# Linting support for notebooks (optional)
+nbstripout
+
+# Optional: PDF to image / OCR (if used in the future)
+# pdf2image
+# pytesseract

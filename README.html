@@ -1,0 +1,43 @@
+from markdown import markdown
+from pathlib import Path
+
+# Lire le fichier README.md
+readme_md_path = Path("README.md")
+readme_html_path = Path("README.html")
+
+if readme_md_path.exists():
+    markdown_text = readme_md_path.read_text(encoding="utf-8")
+
+    # Convertir en HTML avec quelques options
+    html = markdown(markdown_text, extensions=["fenced_code", "codehilite", "tables", "toc"])
+
+    # Ajouter un wrapper HTML de base
+    html_full = f"""
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>README - Revolver AI Bot</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 2rem; line-height: 1.6; }
+        h1, h2, h3 { color: #333; }
+        pre { background: #f4f4f4; padding: 1em; overflow: auto; }
+        code { background: #f4f4f4; padding: 0.2em 0.4em; border-radius: 4px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.5em; }
+        th { background-color: #f0f0f0; }
+    </style>
+</head>
+<body>
+{html}
+</body>
+</html>
+"""
+
+    # Sauvegarder
+    readme_html_path.write_text(html_full, encoding="utf-8")
+    result_message = f"README.html généré avec succès dans : {readme_html_path.resolve()}"
+else:
+    result_message = "README.md introuvable."
+
+result_message

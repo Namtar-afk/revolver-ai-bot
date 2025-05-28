@@ -1,0 +1,77 @@
+# ========================
+# 🐍 Python & Environnement
+# ========================
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+env/
+ENV/
+venv/
+venv.bak/
+.envrc # Pour direnv
+.python-version
+
+# ========================
+# 🛠️ IDE & Éditeurs
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
+
+# ========================
+# 📓 Jupyter
+# ========================
+.ipynb_checkpoints/
+
+# ========================
+# ✅ Tests & Coverage
+# ========================
+.coverage
+coverage.xml
+coverage.log
+htmlcov/
+.pytest_cache/
+nosetests.xml
+
+# ========================
+# 📚 Documentation (MkDocs)
+# ========================
+site/
+
+# ========================
+# 🐳 Docker & Configs Divers
+# ========================
+.ngrok2/
+ngrok.yml 
+out.pptx
+*.pptx # Si d'autres fichiers de sortie PPTX sont générés et non versionnés
+
+# ========================
+# 🗃️ Fichiers de données générés ou sensibles
+# ========================
+data/veille.csv
+
+# ========================
+# 🔒 Secrets
+# ========================
+.env
+secrets/.env
+*.env.* # Pour ignorer .env.local, .env.dev, etc.
+!secrets/.env.example # MAIS ne PAS ignorer le fichier d'exemple dans secrets/
+!secrets/.env.template # Ou un autre nom pour votre template
+!/secrets/credential.json 
+
+# ========================
+# 🌍 Autres (Spécifique macOS)
+# ========================
+.DS_Store
